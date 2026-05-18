@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1D9E75">
+<title>BeanFlow Point</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7f5;color:#1a1a1a;min-height:100vh}
+.app{max-width:560px;margin:0 auto;padding:0 0 2rem}
+.header{background:#1D9E75;color:#fff;text-align:center;padding:1.25rem 1rem 1rem}
+.header h1{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.header p{font-size:12px;opacity:0.8;margin-top:2px}
+.body{padding:1rem}
+.sec-label{font-size:11px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block}
+input[type=text],input[type=number]{width:100%;padding:10px 12px;font-size:15px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit}
+input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,0.1)}
+.card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:14px;margin-bottom:12px}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;margin-top:5px;font-weight:500}
+.badge-warn{background:#FAEEDA;color:#854F0B}
+.badge-ok{background:#EAF3DE;color:#3B6D11}
+
+/* Tabs */
+.tabs-wrap{padding:0 1rem;margin-bottom:4px}
+.tabs-bar{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;align-items:center;scrollbar-width:none}
+.tabs-bar::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:7px 14px;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;background:#fff;color:#888;white-space:nowrap;font-family:inherit}
+.tab.active{background:#E1F5EE;border-color:#1D9E75;color:#085041;font-weight:600}
+.tab-x{margin-left:6px;font-size:11px;opacity:0.4;cursor:pointer;display:inline}
+.tab-x:hover{opacity:1;color:#E24B4A}
+.add-tab{flex-shrink:0;padding:7px 11px;border:1.5px dashed #ccc;border-radius:8px;font-size:13px;cursor:pointer;background:none;color:#888;font-family:inherit;display:flex;align-items:center;gap:4px}
+.add-tab:hover{background:#f5f7f5;border-color:#1D9E75;color:#1D9E75}
+
+/* Proveedor panel */
+.prov-search-row{display:flex;gap:6px}
+.prov-search-row input{flex:1}
+.btn{padding:9px 13px;background:#fff;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;color:#555;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#f5f7f5;border-color:#1D9E75;color:#1D9E75}
+.btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.btn-primary:hover{background:#0F6E56;color:#fff}
+.dropdown{border:1px solid #ddd;border-radius:8px;margin-top:4px;background:#fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.dd-item{padding:10px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f0f0f0}
+.dd-item:last-child{border-bottom:none}
+.dd-item:hover{background:#f5f7f5}
+
+/* Tipos */
+.tipos-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.tipo-card{border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:all 0.15s}
+.tipo-card.selected{border-color:#1D9E75;background:#E1F5EE}
+.tipo-card.selected .tn{color:#085041}
+.tn{font-size:13px;font-weight:600;color:#1a1a1a}
+.td{font-size:11px;color:#888;margin-top:2px}
+
+/* Partidas */
+.tipo-section{margin-bottom:14px}
+.tipo-sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.tipo-sec-title{font-size:13px;font-weight:600;color:#1a1a1a}
+.add-p-btn{display:flex;align-items:center;gap:4px;font-size:12px;color:#1D9E75;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+.partida{background:#f9faf9;border-radius:8px;padding:11px 12px;margin-bottom:8px;border:1px solid #e8e8e8}
+.p-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.p-title{font-size:12px;font-weight:600;color:#888}
+.rm-btn{font-size:11px;color:#bbb;background:none;border:none;cursor:pointer;font-family:inherit}
+.rm-btn:hover{color:#E24B4A}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fl{font-size:11px;color:#888;display:block;margin-bottom:3px;font-weight:500}
+.tara-hint{font-size:11px;color:#1D9E75;margin-top:3px;min-height:15px;font-weight:500}
+.res-box{background:#fff;border-radius:8px;padding:9px 12px;border:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+.res-lbl{font-size:11px;color:#888;font-weight:500}
+.res-val{font-size:18px;font-weight:700;color:#1D9E75}
+.res-unit{font-size:11px;color:#888;margin-left:3px}
+.hum-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.hum-row label{font-size:11px;color:#888;white-space:nowrap;font-weight:500}
+.hum-row input{flex:1}
+
+/* Resumen */
+.summary-card{background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.sum-title{font-size:13px;font-weight:600;color:#0F6E56;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sum-prov{font-size:12px;font-weight:700;color:#0F6E56;margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid #9FE1CB}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#085041;border-bottom:1px solid #b8e8d4}
+.sum-row:last-child{border-bottom:none;font-weight:700;font-size:14px;padding-top:6px}
+
+/* Botones finales */
+.btns-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.wabtn{width:100%;padding:13px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.wabtn:hover{background:#1DB954}
+.savebtn{width:100%;padding:13px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.savebtn:hover{background:#0F6E56}
+.savebtn:disabled{background:#9FE1CB;cursor:not-allowed}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;transition:transform 0.3s;z-index:999;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:#0F6E56}
+.toast.error{background:#A32D2D}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:#aaa;font-size:14px}
+.empty-icon{font-size:36px;display:block;margin-bottom:10px}
+.divider{height:1px;background:#e8e8e8;margin:1rem 0}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>🌱 BeanFlow Point</h1>
+    <p>Centro de acopio — recepción de cacao</p>
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tabs-bar" id="tabs-bar"></div>
+  </div>
+
+  <div class="body">
+    <div id="main-content"></div>
+    <div class="divider" id="divider" style="display:none"></div>
+    <div id="resumen-global"></div>
+    <div class="btns-row" id="btns-row" style="display:none">
+      <button class="savebtn" id="save-btn" onclick="guardarEnSheets()">
+        &#128190; Guardar en Sheets
+      </button>
+      <button class="wabtn" onclick="enviarWhatsApp()">
+        &#128233; WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVt5OA27k_gNF8pBgANPSYYrH-14vhSGn8x7LCbvHzciR5Clm0wbdL7l6oIh3aKzZg/exec";
+
+const PROVEEDORES_DB = [
+  {nombre:"Carlos Andrade",codigo:"CAC-001"},
+  {nombre:"María Loor",codigo:"CAC-002"},
+  {nombre:"Humberto Pincay",codigo:null},
+  {nombre:"Finca La Esperanza",codigo:"CAC-003"},
+  {nombre:"Asociación Río Verde",codigo:"CAC-004"},
+  {nombre:"Pedro Zambrano",codigo:null},
+];
+
+const ORDEN = ['seco','especial','convencional','fermentado'];
+const NOMBRES = {seco:'Cacao seco',especial:'Cacao especial',convencional:'Cacao convencional',fermentado:'Cacao fermentado'};
+const UNIDADES = {seco:'kg',especial:'qq',convencional:'qq',fermentado:'qq'};
+
+let proveedores = [];
+let activeIdx = null;
+let nextId = 1;
+let addPanelVisible = false;
+
+function nuevoProveedor(nombre, codigo){
+  const id = nextId++;
+  proveedores.push({id, nombre, codigo, tipos:{}, partidas:{}});
+  return id;
+}
+function getProveedor(id){ return proveedores.find(p=>p.id===id); }
+
+function calcTara(s){
+  if(!s||!s.trim()) return null;
+  const c = s.replace(/,/g,'.').replace(/[^0-9.+\-*/() ]/g,'');
+  try{ const v=Function('return '+c)(); return isNaN(v)?null:v; } catch(e){ return null; }
+}
+
+function calcResultado(tipo, peso, tara){
+  const p = parseFloat(String(peso).replace(',','.'));
+  const t = calcTara(tara);
+  if(!p||isNaN(p)) return null;
+  const neto = p-(t!==null?t:0);
+  if(tipo==='seco') return neto.toFixed(2);
+  const qq = neto/50;
+  const total = Math.round(qq*100);
+  const rem = total%5;
+  return ((rem<3?total-rem:total+(5-rem))/100).toFixed(2);
+}
+
+function getVal(tipo,pid,i,campo){
+  const el = document.getElementById(`f-${pid}-${tipo}-${i}-${campo}`);
+  return el?el.value:'';
+}
+
+function updateCalc(pid, tipo, i){
+  const peso = getVal(tipo,pid,i,'peso');
+  const tara = getVal(tipo,pid,i,'tara');
+  const tv = calcTara(tara);
+  const hint = document.getElementById(`th-${pid}-${tipo}-${i}`);
+  if(hint) hint.textContent = tv!==null?`= ${tv.toFixed(2)} kg`:'';
+  const res = calcResultado(tipo,peso,tara);
+  const rv = document.getElementById(`rv-${pid}-${tipo}-${i}`);
+  if(rv) rv.textContent = res!==null?res:'—';
+  renderResumenGlobal();
+}
+
+function onField(pid,tipo,i,campo){
+  const prov = getProveedor(pid);
+  if(prov) prov.partidas[tipo][i][campo]=getVal(tipo,pid,i,campo);
+  updateCalc(pid,tipo,i);
+}
+
+function renderTabs(){
+  const bar = document.getElementById('tabs-bar');
+  let html = '';
+  proveedores.forEach((p,idx)=>{
+    const initials = p.nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    html += `<div class="tab${activeIdx===idx&&!addPanelVisible?' active':''}" onclick="setActive(${idx})">
+      ${initials} ${p.nombre.split(' ')[0]}
+      <span class="tab-x" onclick="event.stopPropagation();removeProveedor(${idx})">✕</span>
+    </div>`;
+  });
+  html += `<button class="add-tab" onclick="showAddPanel()">+ Proveedor</button>`;
+  bar.innerHTML = html;
+}
+
+function setActive(idx){
+  addPanelVisible = false;
+  activeIdx = idx;
+  renderTabs();
+  renderPanel();
+}
+
+function removeProveedor(idx){
+  proveedores.splice(idx,1);
+  if(proveedores.length===0){ activeIdx=null; }
+  else if(activeIdx>=proveedores.length){ activeIdx=proveedores.length-1; }
+  renderTabs();
+  renderPanel();
+  renderResumenGlobal();
+}
+
+function showAddPanel(){
+  addPanelVisible = true;
+  renderTabs();
+  renderPanel();
+}
+
+function renderPanel(){
+  const mc = document.getElementById('main-content');
+  if(addPanelVisible){
+    mc.innerHTML = `<div class="card">
+      <span class="sec-label">Agregar proveedor</span>
+      <div class="prov-search-row">
+        <input type="text" id="add-prov-input" placeholder="Buscar o escribir nombre..." oninput="buscarAdd()" autocomplete="off">
+        <button class="btn btn-primary" onclick="confirmarAgregar()">+ Agregar</button>
+      </div>
+      <div id="add-dropdown"></div>
+    </div>`;
+    setTimeout(()=>{const el=document.getElementById('add-prov-input');if(el)el.focus();},100);
+    return;
+  }
+  if(activeIdx===null||!proveedores[activeIdx]){
+    mc.innerHTML = `<div class="empty-state"><span class="empty-icon">🌿</span>Toca "+ Proveedor" para comenzar a registrar una recepción</div>`;
+    return;
+  }
+  const prov = proveedores[activeIdx];
+  const pid = prov.id;
+  let html = `<div class="card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#1a1a1a">${prov.nombre}</div>`;
+  html += prov.codigo
+    ? `<span class="badge badge-ok">✓ ${prov.codigo}</span>`
+    : `<span class="badge badge-warn">⚠ No certificado</span>`;
+  html += `</div></div>
+    <span class="sec-label">Tipos de cacao</span>
+    <div class="tipos-grid">`;
+  ORDEN.forEach(tipo=>{
+    const sel = prov.tipos[tipo]?'selected':'';
+    html+=`<div class="tipo-card ${sel}" onclick="toggleTipo(${pid},'${tipo}',this)">
+      <div class="tn">${NOMBRES[tipo]}</div>
+      <div class="td">${tipo==='seco'?'Peso directo (kg)':'Resultado en quintales'}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  ORDEN.forEach(tipo=>{
+    if(!prov.tipos[tipo]) return;
+    const ps = prov.partidas[tipo];
+    html+=`<div class="tipo-section">
+      <div class="tipo-sec-hdr">
+        <span class="tipo-sec-title">${NOMBRES[tipo]}</span>
+        ${ps.length<2?`<button class="add-p-btn" onclick="addPartida(${pid},'${tipo}')">+ 2ª partida</button>`:''}
+      </div>`;
+    ps.forEach((p,i)=>{
+      html+=`<div class="partida">
+        <div class="p-hdr">
+          <span class="p-title">Partida ${i+1}</span>
+          ${i>0?`<button class="rm-btn" onclick="removePartida(${pid},'${tipo}',${i})">✕ Quitar</button>`:''}
+        </div>
+        <div class="row2">
+          <div>
+            <label class="fl">Peso bruto (kg)</label>
+            <input type="number" id="f-${pid}-${tipo}-${i}-peso" step="0.1" min="0" placeholder="0.0" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" inputmode="decimal">
+          </div>
+          <div>
+            <label class="fl">Tara</label>
+            <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')">
+            <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
+          </div>
+        </div>
+        ${tipo==='seco'?`<div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>`:''}
+        <div class="res-box">
+          <span class="res-lbl">${tipo==='seco'?'Peso neto':'Quintales'}</span>
+          <div style="display:flex;align-items:baseline">
+            <span class="res-val" id="rv-${pid}-${tipo}-${i}">—</span>
+            <span class="res-unit">${UNIDADES[tipo]}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  mc.innerHTML = html;
+  ORDEN.forEach(tipo=>{
+    if(!prov.tipos[tipo]) return;
+    prov.partidas[tipo].forEach((_,i)=>updateCalc(pid,tipo,i));
+  });
+}
+
+function toggleTipo(pid, tipo, card){
+  const prov = getProveedor(pid);
+  if(prov.tipos[tipo]){ delete prov.tipos[tipo]; delete prov.partidas[tipo]; }
+  else { prov.tipos[tipo]=true; prov.partidas[tipo]=[{peso:'',tara:'',humedad:''}]; }
+  renderPanel();
+  renderResumenGlobal();
+}
+
+function addPartida(pid, tipo){
+  const prov = getProveedor(pid);
+  if(prov.partidas[tipo].length<2){ prov.partidas[tipo].push({peso:'',tara:'',humedad:''}); renderPanel(); }
+}
+
+function removePartida(pid, tipo, i){
+  const prov = getProveedor(pid);
+  prov.partidas[tipo].splice(i,1);
+  renderPanel();
+}
+
+function buscarAdd(){
+  const q = document.getElementById('add-prov-input').value.toLowerCase();
+  const dd = document.getElementById('add-dropdown');
+  if(!q){dd.innerHTML='';dd.className='';return;}
+  const m = PROVEEDORES_DB.filter(p=>p.nombre.toLowerCase().includes(q)&&!proveedores.find(x=>x.nombre===p.nombre));
+  if(!m.length){dd.innerHTML='';dd.className='';return;}
+  dd.className='dropdown';
+  dd.innerHTML=m.map(p=>`<div class="dd-item" onmousedown="seleccionarAdd(${JSON.stringify(p.nombre)},${JSON.stringify(p.codigo)})">${p.nombre}</div>`).join('');
+}
+
+function seleccionarAdd(nombre, codigo){
+  document.getElementById('add-prov-input').value=nombre;
+  document.getElementById('add-dropdown').innerHTML='';
+  _confirmar(nombre,codigo);
+}
+
+function confirmarAgregar(){
+  const nombre = document.getElementById('add-prov-input').value.trim();
+  if(!nombre) return;
+  const existe = PROVEEDORES_DB.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+  if(existe){ _confirmar(existe.nombre,existe.codigo); return; }
+  PROVEEDORES_DB.push({nombre,codigo:null});
+  _confirmar(nombre,null);
+}
+
+function _confirmar(nombre,codigo){
+  addPanelVisible=false;
+  nuevoProveedor(nombre,codigo);
+  activeIdx=proveedores.length-1;
+  renderTabs();
+  renderPanel();
+}
+
+function renderResumenGlobal(){
+  const c = document.getElementById('resumen-global');
+  const div = document.getElementById('divider');
+  const btns = document.getElementById('btns-row');
+  let html='';
+  let total=0;
+  proveedores.forEach(prov=>{
+    let rows=[];
+    ORDEN.forEach(tipo=>{
+      if(!prov.tipos[tipo]) return;
+      prov.partidas[tipo].forEach((_,i)=>{
+        const peso=getVal(tipo,prov.id,i,'peso');
+        const tara=getVal(tipo,prov.id,i,'tara');
+        const res=calcResultado(tipo,peso,tara);
+        if(res!==null){
+          const hum=tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'';
+          rows.push({label:`${NOMBRES[tipo]} P${i+1}${hum?` · Hum: ${hum}%`:''}`,value:`${res} ${UNIDADES[tipo]}`});
+          total++;
+        }
+      });
+    });
+    if(!rows.length) return;
+    html+=`<div class="summary-card">
+      <div class="sum-prov">👤 ${prov.nombre} — ${prov.codigo||'No certificado'}</div>`;
+    rows.forEach(r=>{ html+=`<div class="sum-row"><span>${r.label}</span><span>${r.value}</span></div>`; });
+    html+=`</div>`;
+  });
+  if(total>0){div.style.display='';btns.style.display='grid';c.innerHTML=html;}
+  else{div.style.display='none';btns.style.display='none';c.innerHTML='';}
+}
+
+function obtenerRegistros(){
+  const fecha = new Date().toLocaleDateString('es-EC');
+  let registros=[];
+  proveedores.forEach(prov=>{
+    ORDEN.forEach(tipo=>{
+      if(!prov.tipos[tipo]) return;
+      prov.partidas[tipo].forEach((_,i)=>{
+        const peso=getVal(tipo,prov.id,i,'peso');
+        const tara=getVal(tipo,prov.id,i,'tara');
+        const res=calcResultado(tipo,peso,tara);
+        if(res!==null){
+          registros.push({
+            fecha,
+            proveedor: prov.nombre,
+            codigo: prov.codigo||'NO CERTIFICADO',
+            tipo: NOMBRES[tipo],
+            partida: i+1,
+            peso: peso,
+            tara: tara||'0',
+            resultado: res,
+            unidad: UNIDADES[tipo],
+            humedad: tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):''
+          });
+        }
+      });
+    });
+  });
+  return registros;
+}
+
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show '+(type);
+  setTimeout(()=>{ t.className='toast'; },3000);
+}
+
+async function guardarEnSheets(){
+  const registros = obtenerRegistros();
+  if(!registros.length){ showToast('No hay partidas completas para guardar','error'); return; }
+  const btn = document.getElementById('save-btn');
+  btn.disabled=true;
+  btn.textContent='Guardando...';
+  try{
+    await fetch(SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({registros})
+    });
+    showToast('✓ Guardado en Google Sheets','success');
+  } catch(e){
+    showToast('Error al guardar. Revisa tu conexión','error');
+  }
+  btn.disabled=false;
+  btn.textContent='💾 Guardar en Sheets';
+}
+
+function enviarWhatsApp(){
+  const registros = obtenerRegistros();
+  if(!registros.length){ showToast('No hay partidas completas para enviar','error'); return; }
+  const fecha = new Date().toLocaleDateString('es-EC');
+  let lineas=['*🌱 BEANFLOW POINT*',`*Recepción de cacao — ${fecha}*`,''];
+  let provActual='';
+  registros.forEach(r=>{
+    if(r.proveedor!==provActual){
+      if(provActual) lineas.push('');
+      lineas.push(`*${r.proveedor}* (${r.codigo})`);
+      provActual=r.proveedor;
+    }
+    lineas.push(`  ${r.tipo} P${r.partida}: ${r.resultado} ${r.unidad}`);
+    if(r.humedad) lineas.push(`    Humedad: ${r.humedad}%`);
+  });
+  window.open('https://wa.me/?text='+encodeURIComponent(lineas.join('\n')),'_blank');
+}
+
+showAddPanel();
+</script>
+</body>
+</html>
