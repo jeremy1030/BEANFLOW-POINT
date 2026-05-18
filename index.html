@@ -64,6 +64,7 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .rm-btn{font-size:11px;color:#bbb;background:none;border:none;cursor:pointer;font-family:inherit}
 .rm-btn:hover{color:#E24B4A}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .fl{font-size:11px;color:#888;display:block;margin-bottom:3px;font-weight:500}
 .tara-hint{font-size:11px;color:#1D9E75;margin-top:3px;min-height:15px;font-weight:500}
 .res-box{background:#fff;border-radius:8px;padding:9px 12px;border:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;margin-top:9px}
@@ -73,6 +74,12 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .hum-row{display:flex;align-items:center;gap:8px;margin-top:8px}
 .hum-row label{font-size:11px;color:#888;white-space:nowrap;font-weight:500}
 .hum-row input{flex:1}
+.price-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.price-row label{font-size:11px;color:#888;white-space:nowrap;font-weight:500}
+.price-prefix{font-size:14px;color:#555;font-weight:600;margin-right:2px}
+.price-wrap{display:flex;align-items:center;flex:1;gap:4px}
+.price-wrap input{flex:1}
+.price-unit{font-size:11px;color:#aaa;white-space:nowrap}
 
 /* Resumen */
 .summary-card{background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:14px 16px;margin-bottom:10px}
@@ -141,9 +148,31 @@ const PROVEEDORES_DB = [
   {nombre:"Pedro Zambrano",codigo:null},
 ];
 
-const ORDEN = ['seco','especial','convencional','fermentado'];
-const NOMBRES = {seco:'Cacao seco',especial:'Cacao especial',convencional:'Cacao convencional',fermentado:'Cacao fermentado'};
-const UNIDADES = {seco:'kg',especial:'qq',convencional:'qq',fermentado:'qq'};
+// Orden: seco primero, luego los 4 de baba
+const ORDEN = ['seco','especial','premium','fermentado','convencional'];
+const NOMBRES = {
+  seco:        'Cacao seco',
+  especial:    'Cacao especial',
+  premium:     'Cacao premium',
+  fermentado:  'Cacao fermentado',
+  convencional:'Cacao convencional'
+};
+// Unidades de resultado
+const UNIDADES = {
+  seco:        'lb',
+  especial:    'tachos',
+  premium:     'tachos',
+  fermentado:  'tachos',
+  convencional:'tachos'
+};
+// Unidad para precio en WhatsApp
+const PRECIO_UNIT = {
+  seco:        'quintal',
+  especial:    'tacho',
+  premium:     'tacho',
+  fermentado:  'tacho',
+  convencional:'tacho'
+};
 
 let proveedores = [];
 let activeIdx = null;
@@ -168,9 +197,13 @@ function calcResultado(tipo, peso, tara){
   const t = calcTara(tara);
   if(!p||isNaN(p)) return null;
   const neto = p-(t!==null?t:0);
-  if(tipo==='seco') return neto.toFixed(2);
-  const qq = neto/50;
-  const total = Math.round(qq*100);
+  if(tipo==='seco'){
+    // Cacao seco: resultado en lb (peso neto directo)
+    return neto.toFixed(2);
+  }
+  // Cacao en baba: resultado en tachos (÷ 50 lb por tacho), redondeado a 0.05
+  const tachos = neto/50;
+  const total = Math.round(tachos*100);
   const rem = total%5;
   return ((rem<3?total-rem:total+(5-rem))/100).toFixed(2);
 }
@@ -185,7 +218,7 @@ function updateCalc(pid, tipo, i){
   const tara = getVal(tipo,pid,i,'tara');
   const tv = calcTara(tara);
   const hint = document.getElementById(`th-${pid}-${tipo}-${i}`);
-  if(hint) hint.textContent = tv!==null?`= ${tv.toFixed(2)} kg`:'';
+  if(hint) hint.textContent = tv!==null?`= ${tv.toFixed(2)} lb`:'';
   const res = calcResultado(tipo,peso,tara);
   const rv = document.getElementById(`rv-${pid}-${tipo}-${i}`);
   if(rv) rv.textContent = res!==null?res:'—';
@@ -266,15 +299,20 @@ function renderPanel(){
     <div class="tipos-grid">`;
   ORDEN.forEach(tipo=>{
     const sel = prov.tipos[tipo]?'selected':'';
+    let desc = '';
+    if(tipo==='seco') desc = 'Peso neto (lb)';
+    else desc = 'Resultado en tachos';
     html+=`<div class="tipo-card ${sel}" onclick="toggleTipo(${pid},'${tipo}',this)">
       <div class="tn">${NOMBRES[tipo]}</div>
-      <div class="td">${tipo==='seco'?'Peso directo (kg)':'Resultado en quintales'}</div>
+      <div class="td">${desc}</div>
     </div>`;
   });
   html+=`</div>`;
+
   ORDEN.forEach(tipo=>{
     if(!prov.tipos[tipo]) return;
     const ps = prov.partidas[tipo];
+    const esSeco = tipo==='seco';
     html+=`<div class="tipo-section">
       <div class="tipo-sec-hdr">
         <span class="tipo-sec-title">${NOMBRES[tipo]}</span>
@@ -288,18 +326,26 @@ function renderPanel(){
         </div>
         <div class="row2">
           <div>
-            <label class="fl">Peso bruto (kg)</label>
+            <label class="fl">Peso bruto (lb)</label>
             <input type="number" id="f-${pid}-${tipo}-${i}-peso" step="0.1" min="0" placeholder="0.0" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" inputmode="decimal">
           </div>
           <div>
-            <label class="fl">Tara</label>
+            <label class="fl">Tara (lb)</label>
             <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')">
             <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
           </div>
         </div>
-        ${tipo==='seco'?`<div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>`:''}
+        ${esSeco?`<div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad||''}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>`:''}
+        <div class="price-row">
+          <label>💲 Precio (opcional)</label>
+          <div class="price-wrap">
+            <span class="price-prefix">$</span>
+            <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
+            <span class="price-unit">/${esSeco?'quintal':'tacho'}</span>
+          </div>
+        </div>
         <div class="res-box">
-          <span class="res-lbl">${tipo==='seco'?'Peso neto':'Quintales'}</span>
+          <span class="res-lbl">${esSeco?'Peso neto':'Tachos'}</span>
           <div style="display:flex;align-items:baseline">
             <span class="res-val" id="rv-${pid}-${tipo}-${i}">—</span>
             <span class="res-unit">${UNIDADES[tipo]}</span>
@@ -320,14 +366,14 @@ function renderPanel(){
 function toggleTipo(pid, tipo, card){
   const prov = getProveedor(pid);
   if(prov.tipos[tipo]){ delete prov.tipos[tipo]; delete prov.partidas[tipo]; }
-  else { prov.tipos[tipo]=true; prov.partidas[tipo]=[{peso:'',tara:'',humedad:''}]; }
+  else { prov.tipos[tipo]=true; prov.partidas[tipo]=[{peso:'',tara:'',humedad:'',precio:''}]; }
   renderPanel();
   renderResumenGlobal();
 }
 
 function addPartida(pid, tipo){
   const prov = getProveedor(pid);
-  if(prov.partidas[tipo].length<2){ prov.partidas[tipo].push({peso:'',tara:'',humedad:''}); renderPanel(); }
+  if(prov.partidas[tipo].length<2){ prov.partidas[tipo].push({peso:'',tara:'',humedad:'',precio:''}); renderPanel(); }
 }
 
 function removePartida(pid, tipo, i){
@@ -385,7 +431,14 @@ function renderResumenGlobal(){
         const res=calcResultado(tipo,peso,tara);
         if(res!==null){
           const hum=tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'';
-          rows.push({label:`${NOMBRES[tipo]} P${i+1}${hum?` · Hum: ${hum}%`:''}`,value:`${res} ${UNIDADES[tipo]}`});
+          const precio=getVal(tipo,prov.id,i,'precio');
+          const unidad=UNIDADES[tipo];
+          const precioUnit=PRECIO_UNIT[tipo];
+          let label=`${NOMBRES[tipo]} P${i+1}`;
+          if(hum) label+=` · Hum: ${hum}%`;
+          let value=`${res} ${unidad}`;
+          if(precio) value+=` · $${precio}/${precioUnit}`;
+          rows.push({label,value});
           total++;
         }
       });
@@ -421,7 +474,9 @@ function obtenerRegistros(){
             tara: tara||'0',
             resultado: res,
             unidad: UNIDADES[tipo],
-            humedad: tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):''
+            humedad: tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'',
+            precio: getVal(tipo,prov.id,i,'precio'),
+            precioUnidad: PRECIO_UNIT[tipo]
           });
         }
       });
@@ -472,6 +527,7 @@ function enviarWhatsApp(){
     }
     lineas.push(`  ${r.tipo} P${r.partida}: ${r.resultado} ${r.unidad}`);
     if(r.humedad) lineas.push(`    Humedad: ${r.humedad}%`);
+    if(r.precio) lineas.push(`    Precio sugerido: $${r.precio} por ${r.precioUnidad}`);
   });
   window.open('https://wa.me/?text='+encodeURIComponent(lineas.join('\n')),'_blank');
 }
