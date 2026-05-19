@@ -10,9 +10,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7f5;color:#1a1a1a;min-height:100vh}
 .app{max-width:560px;margin:0 auto;padding:0 0 2rem}
-.header{background:#1D9E75;color:#fff;text-align:center;padding:1.25rem 1rem 1rem}
-.header h1{font-size:20px;font-weight:600;letter-spacing:-0.3px}
-.header p{font-size:12px;opacity:0.8;margin-top:2px}
+.header{background:linear-gradient(160deg,#0A4A35 0%,#0F6E56 40%,#1D9E75 100%);color:#fff;text-align:center;padding:0;overflow:hidden}
+.header-logo{display:block;width:100%;max-height:160px;object-fit:contain}
+.header-svg-wrap{display:flex;justify-content:center;align-items:center;padding:10px 0 6px}
+.header-sub{font-size:11px;color:rgba(255,220,160,0.75);padding-bottom:10px;letter-spacing:0.04em;font-weight:500}
 .body{padding:1rem}
 .sec-label{font-size:11px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block}
 input[type=text],input[type=number]{width:100%;padding:10px 12px;font-size:15px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit}
@@ -111,8 +112,11 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 
 <div class="app">
   <div class="header">
-    <h1>🌱 BeanFlow Point</h1>
-    <p>Centro de acopio — recepción de cacao</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 16px 6px">
+      <span style="font-size:30px;line-height:1">🫘</span>
+      <span style="font-size:22px;font-weight:700;letter-spacing:0.01em;color:#fff">BeanFlow Point</span>
+    </div>
+    <div class="header-sub">Centro de acopio — recepción de cacao</div>
   </div>
 
   <div class="tabs-wrap">
@@ -193,9 +197,9 @@ function calcTara(s){
 }
 
 function calcResultado(tipo, peso, tara){
-  const p = parseFloat(String(peso).replace(',','.'));
+  const p = calcTara(String(peso).replace(',','.'));
   const t = calcTara(tara);
-  if(!p||isNaN(p)) return null;
+  if(p===null||isNaN(p)) return null;
   const neto = p-(t!==null?t:0);
   if(tipo==='seco'){
     // Cacao seco: resultado en lb (peso neto directo)
@@ -216,7 +220,10 @@ function getVal(tipo,pid,i,campo){
 function updateCalc(pid, tipo, i){
   const peso = getVal(tipo,pid,i,'peso');
   const tara = getVal(tipo,pid,i,'tara');
+  const pv = calcTara(peso);
   const tv = calcTara(tara);
+  const phint = document.getElementById(`ph-${pid}-${tipo}-${i}`);
+  if(phint) phint.textContent = pv!==null&&peso.includes('+')?`= ${pv.toFixed(2)} lb`:'';
   const hint = document.getElementById(`th-${pid}-${tipo}-${i}`);
   if(hint) hint.textContent = tv!==null?`= ${tv.toFixed(2)} lb`:'';
   const res = calcResultado(tipo,peso,tara);
@@ -326,12 +333,13 @@ function renderPanel(){
         </div>
         <div class="row2">
           <div>
-            <label class="fl">Peso bruto (lb)</label>
-            <input type="number" id="f-${pid}-${tipo}-${i}-peso" step="0.1" min="0" placeholder="0.0" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" inputmode="decimal">
+            <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
+            <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" inputmode="decimal" style="letter-spacing:0.02em">
+            <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
           </div>
           <div>
-            <label class="fl">Tara (lb)</label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')">
+            <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
+            <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
             <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
           </div>
         </div>
@@ -517,7 +525,7 @@ function enviarWhatsApp(){
   const registros = obtenerRegistros();
   if(!registros.length){ showToast('No hay partidas completas para enviar','error'); return; }
   const fecha = new Date().toLocaleDateString('es-EC');
-  let lineas=['*🌱 BEANFLOW POINT*',`*Recepción de cacao — ${fecha}*`,''];
+  let lineas=[`*Recepción de cacao — ${fecha}*`,''];
   let provActual='';
   registros.forEach(r=>{
     if(r.proveedor!==provActual){
