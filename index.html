@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -334,7 +335,7 @@ function renderPanel(){
         <div class="row2">
           <div>
             <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" inputmode="decimal" style="letter-spacing:0.02em">
+            <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
             <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
           </div>
           <div>
@@ -533,9 +534,9 @@ function enviarWhatsApp(){
       lineas.push(`*${r.proveedor}* (${r.codigo})`);
       provActual=r.proveedor;
     }
-    lineas.push(`  ${r.tipo} P${r.partida}: ${r.resultado} ${r.unidad}`);
+    const precioStr = r.precio ? `  $${r.precio}/${r.precioUnidad}` : '';
+    lineas.push(`  ${r.tipo} P${r.partida}${precioStr}     ${r.resultado} ${r.unidad}`);
     if(r.humedad) lineas.push(`    Humedad: ${r.humedad}%`);
-    if(r.precio) lineas.push(`    Precio sugerido: $${r.precio} por ${r.precioUnidad}`);
   });
   window.open('https://wa.me/?text='+encodeURIComponent(lineas.join('\n')),'_blank');
 }
