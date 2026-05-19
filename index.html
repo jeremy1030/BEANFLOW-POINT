@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -526,18 +525,60 @@ function enviarWhatsApp(){
   const registros = obtenerRegistros();
   if(!registros.length){ showToast('No hay partidas completas para enviar','error'); return; }
   const fecha = new Date().toLocaleDateString('es-EC');
-  let lineas=[`*Recepción de cacao — ${fecha}*`,''];
+  let lineas=[];
   let provActual='';
+
+  // Agrupar registros por proveedor
+  const porProveedor = {};
   registros.forEach(r=>{
-    if(r.proveedor!==provActual){
-      if(provActual) lineas.push('');
-      lineas.push(`*${r.proveedor}* (${r.codigo})`);
-      provActual=r.proveedor;
-    }
-    const precioStr = r.precio ? `  $${r.precio}/${r.precioUnidad}` : '';
-    lineas.push(`  ${r.tipo} P${r.partida}${precioStr}     ${r.resultado} ${r.unidad}`);
-    if(r.humedad) lineas.push(`    Humedad: ${r.humedad}%`);
+    if(!porProveedor[r.proveedor]) porProveedor[r.proveedor]={info:r, secos:[], baba:[]};
+    if(r.tipo==='Cacao seco') porProveedor[r.proveedor].secos.push(r);
+    else porProveedor[r.proveedor].baba.push(r);
   });
+
+  Object.values(porProveedor).forEach((pData, idx)=>{
+    const r0 = pData.info;
+    // Encabezado principal solo en el primer proveedor con seco, o siempre
+    if(idx===0 && pData.secos.length>0){
+      lineas.push(`*Recepcion de cacao - ${fecha}*`);
+      lineas.push(`${r0.proveedor} ${r0.codigo}`);
+    } else {
+      if(idx>0) lineas.push('');
+      lineas.push(`${r0.proveedor} ${r0.codigo}`);
+    }
+
+    // Cacao seco: formato especial
+    pData.secos.forEach(r=>{
+      lineas.push(`Seco`);
+      const precioStr = r.precio ? ` $${r.precio}` : '';
+      lineas.push(`Partida ${r.partida}${precioStr}`);
+      // Obtener peso bruto y tara directamente del registro
+      const pesoStr = r.peso || '0';
+      const taraStr = r.tara || '0';
+      lineas.push(`${pesoStr} - ${taraStr}`);
+      if(r.humedad) lineas.push(`${r.humedad}%`);
+    });
+
+    // Tipos de baba: especial, premium, fermentado, convencional
+    // Agrupar por tipo
+    const tiposBaba = {};
+    pData.baba.forEach(r=>{
+      const key = r.tipo.replace('Cacao ','');
+      if(!tiposBaba[key]) tiposBaba[key]=[];
+      tiposBaba[key].push(r);
+    });
+    Object.entries(tiposBaba).forEach(([tipoNombre, parts])=>{
+      // Capitalizar primera letra
+      const label = tipoNombre.charAt(0).toUpperCase()+tipoNombre.slice(1);
+      lineas.push(label);
+      parts.forEach(r=>{
+        const precioStr = r.precio ? ` $${r.precio}` : '';
+        lineas.push(`Partida ${r.partida}${precioStr}:`);
+        lineas.push(`${r.resultado} tachos`);
+      });
+    });
+  });
+
   window.open('https://wa.me/?text='+encodeURIComponent(lineas.join('\n')),'_blank');
 }
 
