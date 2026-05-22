@@ -111,6 +111,16 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .toast.success{background:#0F6E56}
 .toast.error{background:#A32D2D}
 
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:7px 10px;background:#f0faf6;border-radius:8px;border:1px solid #d0edd8}
+.toggle-label{font-size:11px;color:#3B6D11;font-weight:500;display:flex;align-items:center;gap:5px}
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:20px;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:#1D9E75}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px)}
+
 .empty-state{text-align:center;padding:3rem 1rem;color:#aaa;font-size:14px}
 .empty-icon{font-size:36px;display:block;margin-bottom:10px}
 .divider{height:1px;background:#e8e8e8;margin:1rem 0}
@@ -417,6 +427,7 @@ function renderPanel(){
         </div>`;
       } else {
         // Cacao en baba
+        const inclPesos = p.incluirPesos !== false; // default: true (no checked = no incluir; checked = incluir)
         html+=`<div class="partida">
           <div class="p-hdr">
             <span class="p-title">Partida ${i+1}</span>
@@ -433,6 +444,13 @@ function renderPanel(){
               <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
               <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
             </div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">📱 Incluir pesos en WhatsApp</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="f-${pid}-${tipo}-${i}-incluirPesos" ${inclPesos?'checked':''} onchange="onTogglePesos(${pid},'${tipo}',${i})">
+              <span class="toggle-slider"></span>
+            </label>
           </div>
           <div class="price-row">
             <label>💲 Precio (opcional)</label>
@@ -479,13 +497,19 @@ function updateBultos(pid,tipo,i){
   if(hint) hint.textContent = bv!==null&&bVal&&bVal.includes('+')?`= ${bv.toFixed(0)} bultos`:'';
 }
 
+function onTogglePesos(pid,tipo,i){
+  const prov = getProveedor(pid);
+  const el = document.getElementById(`f-${pid}-${tipo}-${i}-incluirPesos`);
+  if(prov && el) prov.partidas[tipo][i].incluirPesos = el.checked;
+}
+
 function toggleTipo(pid, tipo, card){
   const prov = getProveedor(pid);
   if(prov.tipos[tipo]){ delete prov.tipos[tipo]; delete prov.partidas[tipo]; }
   else {
     prov.tipos[tipo]=true;
     if(tipo==='seco') prov.partidas[tipo]=[{peso:'',tara:'',humedad:'',precio:'',bultos:''}];
-    else prov.partidas[tipo]=[{peso:'',tara:'',precio:''}];
+    else prov.partidas[tipo]=[{peso:'',tara:'',precio:'',incluirPesos:true}];
   }
   renderPanel();
   renderResumenGlobal();
@@ -495,7 +519,7 @@ function addPartida(pid, tipo){
   const prov = getProveedor(pid);
   if(prov.partidas[tipo].length<2){
     if(tipo==='seco') prov.partidas[tipo].push({peso:'',tara:'',humedad:'',precio:'',bultos:''});
-    else prov.partidas[tipo].push({peso:'',tara:'',precio:''});
+    else prov.partidas[tipo].push({peso:'',tara:'',precio:'',incluirPesos:true});
     renderPanel();
   }
 }
@@ -606,7 +630,8 @@ function obtenerRegistros(){
             precio: getVal(tipo,prov.id,i,'precio'),
             precioUnidad: PRECIO_UNIT[tipo],
             bultos: bultosVal!==null ? Math.round(bultosVal) : '',
-            bultosRaw: bultosRaw
+            bultosRaw: bultosRaw,
+            incluirPesos: tipo==='seco' ? true : (()=>{ const el=document.getElementById(`f-${prov.id}-${tipo}-${i}-incluirPesos`); return el?el.checked:false; })()
           });
         }
       });
@@ -695,16 +720,12 @@ function enviarWhatsApp(){
     Object.entries(tiposBaba).forEach(([tipoNombre, parts])=>{
       parts.forEach(r=>{
         const precioStr = r.precio ? ` ($${r.precio})` : '';
-        // Calcular pesos para incluir si hay suma
-        const pesoNum = calcTara(r.peso);
-        const taraNum = calcTara(r.tara);
-        const pesoStr = pesoNum!==null ? pesoNum.toFixed(2) : '';
-        const taraStr = taraNum!==null ? taraNum.toFixed(2) : '';
-        const tieneSuma = (r.peso&&r.peso.includes('+')) || (r.tara&&r.tara.includes('+'));
-
         lineas.push(`P${r.partida} ${tipoNombre}${precioStr}:`);
-        if(tieneSuma && pesoStr){
-          // Mostrar desglose: peso bruto resultado - tara resultado = tachos
+        if(r.incluirPesos){
+          const pesoNum = calcTara(r.peso);
+          const taraNum = calcTara(r.tara);
+          const pesoStr = pesoNum!==null ? pesoNum.toFixed(2) : (r.peso||'0');
+          const taraStr = taraNum!==null ? taraNum.toFixed(2) : (r.tara||'0');
           lineas.push(`${pesoStr} - ${taraStr} = ${r.resultado} tachos`);
         } else {
           lineas.push(`${r.resultado} tachos`);
