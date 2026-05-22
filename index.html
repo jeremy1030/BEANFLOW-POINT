@@ -41,10 +41,17 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .btn:hover{background:#f5f7f5;border-color:#1D9E75;color:#1D9E75}
 .btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75}
 .btn-primary:hover{background:#0F6E56;color:#fff}
+.btn-edit{padding:5px 10px;background:#f5f7f5;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:11px;color:#555;font-family:inherit}
+.btn-edit:hover{border-color:#1D9E75;color:#1D9E75}
 .dropdown{border:1px solid #ddd;border-radius:8px;margin-top:4px;background:#fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
 .dd-item{padding:10px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f0f0f0}
 .dd-item:last-child{border-bottom:none}
 .dd-item:hover{background:#f5f7f5}
+
+/* Nombre editable */
+.prov-name-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.prov-name-input{font-size:16px;font-weight:700;color:#1a1a1a;padding:5px 8px;border:1.5px solid #1D9E75;border-radius:6px;background:#f9faf9}
+.prov-name-display{font-size:16px;font-weight:700;color:#1a1a1a}
 
 /* Tipos */
 .tipos-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -66,6 +73,7 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .rm-btn:hover{color:#E24B4A}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.row3-seco{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .fl{font-size:11px;color:#888;display:block;margin-bottom:3px;font-weight:500}
 .tara-hint{font-size:11px;color:#1D9E75;margin-top:3px;min-height:15px;font-weight:500}
 .res-box{background:#fff;border-radius:8px;padding:9px 12px;border:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;margin-top:9px}
@@ -106,11 +114,6 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .empty-state{text-align:center;padding:3rem 1rem;color:#aaa;font-size:14px}
 .empty-icon{font-size:36px;display:block;margin-bottom:10px}
 .divider{height:1px;background:#e8e8e8;margin:1rem 0}
-.edit-name-btn{font-size:11px;color:#1D9E75;background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 6px;border-radius:5px;font-weight:500}
-.edit-name-btn:hover{background:#E1F5EE}
-.edit-name-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.edit-name-input{flex:1;padding:6px 10px;font-size:15px;border:1px solid #1D9E75;border-radius:7px;background:#fff;font-weight:700;font-family:inherit}
-.bultos-hint{font-size:11px;color:#1D9E75;margin-top:3px;min-height:15px;font-weight:500}
 </style>
 </head>
 <body>
@@ -157,7 +160,6 @@ const PROVEEDORES_DB = [
   {nombre:"Pedro Zambrano",codigo:null},
 ];
 
-// Orden: seco primero, luego los 4 de baba
 const ORDEN = ['seco','especial','premium','fermentado','convencional'];
 const NOMBRES = {
   seco:        'Cacao seco',
@@ -166,7 +168,6 @@ const NOMBRES = {
   fermentado:  'Cacao fermentado',
   convencional:'Cacao convencional'
 };
-// Unidades de resultado
 const UNIDADES = {
   seco:        'lb',
   especial:    'tachos',
@@ -174,7 +175,6 @@ const UNIDADES = {
   fermentado:  'tachos',
   convencional:'tachos'
 };
-// Unidad para precio en WhatsApp
 const PRECIO_UNIT = {
   seco:        'quintal',
   especial:    'tacho',
@@ -195,37 +195,7 @@ function nuevoProveedor(nombre, codigo){
 }
 function getProveedor(id){ return proveedores.find(p=>p.id===id); }
 
-function editProvNombre(pid){
-  const prov = getProveedor(pid);
-  if(prov){ prov._editingName = true; renderPanel(); setTimeout(()=>{ const el=document.getElementById(`edit-name-input-${pid}`); if(el){el.focus();el.select();} },80); }
-}
-
-function saveProvNombre(pid){
-  const prov = getProveedor(pid);
-  const el = document.getElementById(`edit-name-input-${pid}`);
-  if(prov && el){
-    const nuevo = el.value.trim();
-    if(nuevo) prov.nombre = nuevo;
-    prov._editingName = false;
-    renderTabs();
-    renderPanel();
-  }
-}
-
-function togglePesoBaba(pid, tipo, i){
-  const prov = getProveedor(pid);
-  if(!prov) return;
-  prov.partidas[tipo][i]._showPeso = !prov.partidas[tipo][i]._showPeso;
-  renderPanel();
-}
-
-function calcBultos(s){
-  if(!s||!s.trim()) return null;
-  const c = s.replace(/,/g,'.').replace(/[^0-9.+\-*/() ]/g,'');
-  try{ const v=Function('return '+c)(); return isNaN(v)?null:v; } catch(e){ return null; }
-}
-
-
+function calcTara(s){
   if(!s||!s.trim()) return null;
   const c = s.replace(/,/g,'.').replace(/[^0-9.+\-*/() ]/g,'');
   try{ const v=Function('return '+c)(); return isNaN(v)?null:v; } catch(e){ return null; }
@@ -237,10 +207,8 @@ function calcResultado(tipo, peso, tara){
   if(p===null||isNaN(p)) return null;
   const neto = p-(t!==null?t:0);
   if(tipo==='seco'){
-    // Cacao seco: resultado en lb (peso neto directo)
     return neto.toFixed(2);
   }
-  // Cacao en baba: resultado en tachos (÷ 50 lb por tacho), redondeado a 0.05
   const tachos = neto/50;
   const total = Math.round(tachos*100);
   const rem = total%5;
@@ -255,16 +223,12 @@ function getVal(tipo,pid,i,campo){
 function updateCalc(pid, tipo, i){
   const peso = getVal(tipo,pid,i,'peso');
   const tara = getVal(tipo,pid,i,'tara');
-  const bultos = getVal(tipo,pid,i,'bultos');
   const pv = calcTara(peso);
   const tv = calcTara(tara);
-  const bv = calcBultos(bultos);
   const phint = document.getElementById(`ph-${pid}-${tipo}-${i}`);
   if(phint) phint.textContent = pv!==null&&peso.includes('+')?`= ${pv.toFixed(2)} lb`:'';
   const hint = document.getElementById(`th-${pid}-${tipo}-${i}`);
-  if(hint) hint.textContent = tv!==null&&tara.includes('+')?`= ${tv.toFixed(2)} lb`:'';
-  const bhint = document.getElementById(`bh-${pid}-${tipo}-${i}`);
-  if(bhint) bhint.textContent = bv!==null&&bultos&&bultos.includes('+')?`= ${bv} bultos`:'';
+  if(hint) hint.textContent = tv!==null&&tara&&tara.includes('+')?`= ${tv.toFixed(2)} lb`:'';
   const res = calcResultado(tipo,peso,tara);
   const rv = document.getElementById(`rv-${pid}-${tipo}-${i}`);
   if(rv) rv.textContent = res!==null?res:'—';
@@ -275,6 +239,47 @@ function onField(pid,tipo,i,campo){
   const prov = getProveedor(pid);
   if(prov) prov.partidas[tipo][i][campo]=getVal(tipo,pid,i,campo);
   updateCalc(pid,tipo,i);
+}
+
+// ── Editar nombre proveedor ──
+function startEditNombre(pid){
+  const prov = getProveedor(pid);
+  const displayEl = document.getElementById(`prov-name-display-${pid}`);
+  const inputEl = document.getElementById(`prov-name-input-${pid}`);
+  const btnEdit = document.getElementById(`prov-name-btn-${pid}`);
+  if(!displayEl||!inputEl) return;
+  displayEl.style.display='none';
+  inputEl.style.display='';
+  inputEl.value = prov.nombre;
+  btnEdit.textContent='✓ Guardar';
+  btnEdit.onclick = ()=>saveEditNombre(pid);
+  inputEl.focus();
+  inputEl.onkeydown=(e)=>{ if(e.key==='Enter') saveEditNombre(pid); if(e.key==='Escape') cancelEditNombre(pid); };
+}
+
+function saveEditNombre(pid){
+  const prov = getProveedor(pid);
+  const inputEl = document.getElementById(`prov-name-input-${pid}`);
+  const nuevoNombre = inputEl.value.trim();
+  if(!nuevoNombre) return;
+  prov.nombre = nuevoNombre;
+  // Actualizar también en DB si existe
+  const enDb = PROVEEDORES_DB.find(p=>p.nombre===prov.nombre);
+  if(!enDb){ PROVEEDORES_DB.push({nombre:nuevoNombre,codigo:prov.codigo}); }
+  renderTabs();
+  renderPanel();
+  renderResumenGlobal();
+}
+
+function cancelEditNombre(pid){
+  const prov = getProveedor(pid);
+  const displayEl = document.getElementById(`prov-name-display-${pid}`);
+  const inputEl = document.getElementById(`prov-name-input-${pid}`);
+  const btnEdit = document.getElementById(`prov-name-btn-${pid}`);
+  displayEl.style.display='';
+  inputEl.style.display='none';
+  btnEdit.textContent='✏️ Editar';
+  btnEdit.onclick = ()=>startEditNombre(pid);
 }
 
 function renderTabs(){
@@ -335,18 +340,12 @@ function renderPanel(){
   const pid = prov.id;
   let html = `<div class="card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
-      <div style="flex:1">`;
-  if(prov._editingName){
-    html += `<div class="edit-name-row">
-      <input class="edit-name-input" type="text" id="edit-name-input-${pid}" value="${prov.nombre}" onkeydown="if(event.key==='Enter')saveProvNombre(${pid})" autocomplete="off">
-      <button class="btn btn-primary" style="padding:6px 10px;font-size:12px" onclick="saveProvNombre(${pid})">✓</button>
-    </div>`;
-  } else {
-    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-      <div style="font-size:16px;font-weight:700;color:#1a1a1a">${prov.nombre}</div>
-      <button class="edit-name-btn" onclick="editProvNombre(${pid})" title="Editar nombre">✏️</button>
-    </div>`;
-  }
+      <div style="flex:1;min-width:0">
+        <div class="prov-name-row">
+          <span class="prov-name-display" id="prov-name-display-${pid}">${prov.nombre}</span>
+          <input class="prov-name-input" id="prov-name-input-${pid}" type="text" style="display:none;flex:1" value="${prov.nombre}">
+          <button class="btn-edit" id="prov-name-btn-${pid}" onclick="startEditNombre(${pid})">✏️ Editar</button>
+        </div>`;
   html += prov.codigo
     ? `<span class="badge badge-ok">✓ ${prov.codigo}</span>`
     : `<span class="badge badge-warn">⚠ No certificado</span>`;
@@ -375,54 +374,83 @@ function renderPanel(){
         ${ps.length<2?`<button class="add-p-btn" onclick="addPartida(${pid},'${tipo}')">+ 2ª partida</button>`:''}
       </div>`;
     ps.forEach((p,i)=>{
-      html+=`<div class="partida">
-        <div class="p-hdr">
-          <span class="p-title">Partida ${i+1}</span>
-          ${i>0?`<button class="rm-btn" onclick="removePartida(${pid},'${tipo}',${i})">✕ Quitar</button>`:''}
-        </div>
-        ${esSeco||(!esSeco&&(p._showPeso||true))?`<div class="row2" id="pesorow-${pid}-${tipo}-${i}" ${!esSeco&&!p._showPeso?'style="display:none"':''}>
-          <div>
-            <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
-            <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
+      if(esSeco){
+        // Cacao seco: 3 columnas (peso bruto, tara, bultos)
+        html+=`<div class="partida">
+          <div class="p-hdr">
+            <span class="p-title">Partida ${i+1}</span>
+            ${i>0?`<button class="rm-btn" onclick="removePartida(${pid},'${tipo}',${i})">✕ Quitar</button>`:''}
           </div>
-          <div>
-            <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
-            <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
+          <div class="row3-seco">
+            <div>
+              <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
+              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
+              <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
+            </div>
+            <div>
+              <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
+              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
+              <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
+            </div>
+            <div>
+              <label class="fl">Bultos <span style="font-weight:400;color:#1D9E75">— suma ej: 2+1</span></label>
+              <input type="text" id="f-${pid}-${tipo}-${i}-bultos" placeholder="ej: 2+1" value="${p.bultos||''}" oninput="onBultos(${pid},'${tipo}',${i})" style="letter-spacing:0.02em">
+              <div class="tara-hint" id="bh-${pid}-${tipo}-${i}"></div>
+            </div>
           </div>
-        </div>`:''}
-        ${esSeco?`<div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad||''}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>`:''}
-        ${esSeco?`<div class="hum-row" style="margin-top:8px"><label>Bultos (sacos)</label><input type="text" id="f-${pid}-${tipo}-${i}-bultos" placeholder="ej: 2 o 1+1" value="${p.bultos||''}" oninput="onField(${pid},'${tipo}',${i},'bultos')" inputmode="decimal" style="letter-spacing:0.02em"><div class="bultos-hint" id="bh-${pid}-${tipo}-${i}"></div></div>`:''}
-        ${!esSeco?`<div style="margin-top:6px"><button class="add-p-btn" style="font-size:11px;color:#aaa;background:#f5f5f5;border:1px dashed #ddd;border-radius:7px;padding:5px 10px" onclick="togglePesoBaba(${pid},'${tipo}',${i})" id="togglepeso-${pid}-${tipo}-${i}">${p._showPeso?'▲ Ocultar peso/tara':'+ Añadir peso bruto y tara (opcional)'}</button></div>`:''}
-        ${!esSeco&&p._showPeso?`<div class="row2" style="margin-top:8px">
-          <div>
-            <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
-            <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
+          <div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad||''}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>
+          <div class="price-row">
+            <label>💲 Precio (opcional)</label>
+            <div class="price-wrap">
+              <span class="price-prefix">$</span>
+              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
+              <span class="price-unit">/quintal</span>
+            </div>
           </div>
-          <div>
-            <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
-            <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
-            <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
+          <div class="res-box">
+            <span class="res-lbl">Peso neto</span>
+            <div style="display:flex;align-items:baseline">
+              <span class="res-val" id="rv-${pid}-${tipo}-${i}">—</span>
+              <span class="res-unit">lb</span>
+            </div>
           </div>
-        </div>`:''}
-        <div class="price-row">
-          <label>💲 Precio (opcional)</label>
-          <div class="price-wrap">
-            <span class="price-prefix">$</span>
-            <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
-            <span class="price-unit">/${esSeco?'quintal':'tacho'}</span>
+        </div>`;
+      } else {
+        // Cacao en baba
+        html+=`<div class="partida">
+          <div class="p-hdr">
+            <span class="p-title">Partida ${i+1}</span>
+            ${i>0?`<button class="rm-btn" onclick="removePartida(${pid},'${tipo}',${i})">✕ Quitar</button>`:''}
           </div>
-        </div>
-        <div class="res-box">
-          <span class="res-lbl">${esSeco?'Peso neto':'Tachos'}</span>
-          <div style="display:flex;align-items:baseline">
-            <span class="res-val" id="rv-${pid}-${tipo}-${i}">—</span>
-            <span class="res-unit">${UNIDADES[tipo]}</span>
+          <div class="row2">
+            <div>
+              <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
+              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
+              <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
+            </div>
+            <div>
+              <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
+              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
+              <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
+            </div>
           </div>
-        </div>
-      </div>`;
+          <div class="price-row">
+            <label>💲 Precio (opcional)</label>
+            <div class="price-wrap">
+              <span class="price-prefix">$</span>
+              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
+              <span class="price-unit">/tacho</span>
+            </div>
+          </div>
+          <div class="res-box">
+            <span class="res-lbl">Tachos</span>
+            <div style="display:flex;align-items:baseline">
+              <span class="res-val" id="rv-${pid}-${tipo}-${i}">—</span>
+              <span class="res-unit">tachos</span>
+            </div>
+          </div>
+        </div>`;
+      }
     });
     html+=`</div>`;
   });
@@ -430,21 +458,46 @@ function renderPanel(){
   mc.innerHTML = html;
   ORDEN.forEach(tipo=>{
     if(!prov.tipos[tipo]) return;
-    prov.partidas[tipo].forEach((_,i)=>updateCalc(pid,tipo,i));
+    prov.partidas[tipo].forEach((_,i)=>{
+      updateCalc(pid,tipo,i);
+      if(tipo==='seco') updateBultos(pid,tipo,i);
+    });
   });
+}
+
+function onBultos(pid,tipo,i){
+  const prov = getProveedor(pid);
+  if(prov) prov.partidas[tipo][i].bultos = getVal(tipo,pid,i,'bultos');
+  updateBultos(pid,tipo,i);
+  renderResumenGlobal();
+}
+
+function updateBultos(pid,tipo,i){
+  const bVal = getVal(tipo,pid,i,'bultos');
+  const bv = calcTara(bVal);
+  const hint = document.getElementById(`bh-${pid}-${tipo}-${i}`);
+  if(hint) hint.textContent = bv!==null&&bVal&&bVal.includes('+')?`= ${bv.toFixed(0)} bultos`:'';
 }
 
 function toggleTipo(pid, tipo, card){
   const prov = getProveedor(pid);
   if(prov.tipos[tipo]){ delete prov.tipos[tipo]; delete prov.partidas[tipo]; }
-  else { prov.tipos[tipo]=true; prov.partidas[tipo]=[{peso:'',tara:'',humedad:'',precio:'',bultos:''}]; }
+  else {
+    prov.tipos[tipo]=true;
+    if(tipo==='seco') prov.partidas[tipo]=[{peso:'',tara:'',humedad:'',precio:'',bultos:''}];
+    else prov.partidas[tipo]=[{peso:'',tara:'',precio:''}];
+  }
   renderPanel();
   renderResumenGlobal();
 }
 
 function addPartida(pid, tipo){
   const prov = getProveedor(pid);
-  if(prov.partidas[tipo].length<2){ prov.partidas[tipo].push({peso:'',tara:'',humedad:'',precio:'',bultos:''}); renderPanel(); }
+  if(prov.partidas[tipo].length<2){
+    if(tipo==='seco') prov.partidas[tipo].push({peso:'',tara:'',humedad:'',precio:'',bultos:''});
+    else prov.partidas[tipo].push({peso:'',tara:'',precio:''});
+    renderPanel();
+  }
 }
 
 function removePartida(pid, tipo, i){
@@ -503,10 +556,12 @@ function renderResumenGlobal(){
         if(res!==null){
           const hum=tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'';
           const precio=getVal(tipo,prov.id,i,'precio');
+          const bultos=tipo==='seco'?getVal(tipo,prov.id,i,'bultos'):'';
           const unidad=UNIDADES[tipo];
           const precioUnit=PRECIO_UNIT[tipo];
           let label=`${NOMBRES[tipo]} P${i+1}`;
           if(hum) label+=` · Hum: ${hum}%`;
+          if(bultos){ const bv=calcTara(bultos); if(bv!==null) label+=` · ${Math.round(bv)} bultos`; }
           let value=`${res} ${unidad}`;
           if(precio) value+=` · $${precio}/${precioUnit}`;
           rows.push({label,value});
@@ -535,6 +590,8 @@ function obtenerRegistros(){
         const tara=getVal(tipo,prov.id,i,'tara');
         const res=calcResultado(tipo,peso,tara);
         if(res!==null){
+          const bultosRaw = tipo==='seco'?getVal(tipo,prov.id,i,'bultos'):'';
+          const bultosVal = bultosRaw ? calcTara(bultosRaw) : null;
           registros.push({
             fecha,
             proveedor: prov.nombre,
@@ -546,9 +603,10 @@ function obtenerRegistros(){
             resultado: res,
             unidad: UNIDADES[tipo],
             humedad: tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'',
-            bultos: tipo==='seco'?getVal(tipo,prov.id,i,'bultos'):'',
             precio: getVal(tipo,prov.id,i,'precio'),
-            precioUnidad: PRECIO_UNIT[tipo]
+            precioUnidad: PRECIO_UNIT[tipo],
+            bultos: bultosVal!==null ? Math.round(bultosVal) : '',
+            bultosRaw: bultosRaw
           });
         }
       });
@@ -590,7 +648,7 @@ function enviarWhatsApp(){
   if(!registros.length){ showToast('No hay partidas completas para enviar','error'); return; }
   let lineas=[];
 
-  // Agrupar registros por proveedor
+  // Agrupar por proveedor
   const porProveedor = {};
   registros.forEach(r=>{
     if(!porProveedor[r.proveedor]) porProveedor[r.proveedor]={info:r, secos:[], baba:[]};
@@ -600,49 +658,56 @@ function enviarWhatsApp(){
 
   Object.values(porProveedor).forEach((pData, idx)=>{
     const r0 = pData.info;
-    const certStr = r0.codigo==='NO CERTIFICADO' ? 'NO CERTIFICADO' : r0.codigo;
-    // Nombre en negritas WhatsApp (*nombre*)
-    if(idx>0) lineas.push('');
-    lineas.push(`*${r0.proveedor}* (${certStr})`);
+    const certLabel = r0.codigo && r0.codigo!=='NO CERTIFICADO' ? r0.codigo : 'NO CERTIFICADO';
 
-    // Cacao seco
+    if(idx>0) lineas.push('');
+
+    // Nombre en negritas WhatsApp
+    lineas.push(`*${r0.proveedor} (${certLabel})*`);
+
+    // ── Cacao seco ──
     pData.secos.forEach(r=>{
+      // Calcular valores numéricos para la fórmula
+      const pesoNum = calcTara(r.peso);
+      const taraNum = calcTara(r.tara);
+      const pesoStr = pesoNum!==null ? pesoNum.toFixed(2) : (r.peso||'0');
+      const taraStr = taraNum!==null ? taraNum.toFixed(1) : (r.tara||'0');
       const precioStr = r.precio ? ` ($${r.precio})` : '';
-      lineas.push(` P${r.partida}: Cacao seco${precioStr}:`);
-      // Peso bruto crudo (expresión tal como se ingresó) y resultado de tara
-      const pesoVal = calcTara(String(r.peso).replace(',','.'));
-      const taraVal = calcTara(String(r.tara).replace(',','.'));
-      const neto = r.resultado; // ya calculado
-      const pesoStr = pesoVal!==null ? pesoVal.toFixed(2) : r.peso;
-      const taraStr = taraVal!==null ? taraVal.toFixed(2) : (r.tara||'0');
-      lineas.push(`${pesoStr} - ${taraStr} = ${neto} Lb`);
+
+      lineas.push(`P${r.partida}: Cacao seco${precioStr}:`);
+      lineas.push(`${pesoStr} - ${taraStr} = ${r.resultado} Lb`);
+
       // Bultos y humedad
-      const bultosVal = calcBultos(r.bultos);
-      const bultosNum = bultosVal!==null ? bultosVal : (r.bultos||'');
-      const humStr = r.humedad ? ` al ${r.humedad} %` : '';
-      if(bultosNum) lineas.push(`${bultosNum} Bultos${humStr}`);
-      else if(r.humedad) lineas.push(`Humedad: ${r.humedad}%`);
+      let bultosHumLine = '';
+      if(r.bultos!=='') bultosHumLine += `${r.bultos} Bultos`;
+      if(r.humedad){ bultosHumLine += (bultosHumLine?' ':'') + `al ${r.humedad} %`; }
+      if(bultosHumLine) lineas.push(bultosHumLine);
     });
 
-    // Tipos de baba: especial, premium, fermentado, convencional
+    // ── Cacao en baba ──
     const tiposBaba = {};
     pData.baba.forEach(r=>{
-      const key = r.tipo;
+      const key = r.tipo; // ej: "Cacao especial"
       if(!tiposBaba[key]) tiposBaba[key]=[];
       tiposBaba[key].push(r);
     });
+
     Object.entries(tiposBaba).forEach(([tipoNombre, parts])=>{
       parts.forEach(r=>{
         const precioStr = r.precio ? ` ($${r.precio})` : '';
-        lineas.push(` P${r.partida} ${tipoNombre}${precioStr}:`);
-        // Tachos siempre
-        lineas.push(`${r.resultado} tachos`);
-        // Si tiene peso y tara registrados, añadirlos
-        const pesoVal = calcTara(String(r.peso||'').replace(',','.'));
-        const taraVal = calcTara(String(r.tara||'').replace(',','.'));
-        if(pesoVal!==null && r.peso){
-          const taraStr = taraVal!==null ? taraVal.toFixed(2) : '0';
-          lineas.push(`${pesoVal.toFixed(2)} - ${taraStr} Lb`);
+        // Calcular pesos para incluir si hay suma
+        const pesoNum = calcTara(r.peso);
+        const taraNum = calcTara(r.tara);
+        const pesoStr = pesoNum!==null ? pesoNum.toFixed(2) : '';
+        const taraStr = taraNum!==null ? taraNum.toFixed(2) : '';
+        const tieneSuma = (r.peso&&r.peso.includes('+')) || (r.tara&&r.tara.includes('+'));
+
+        lineas.push(`P${r.partida} ${tipoNombre}${precioStr}:`);
+        if(tieneSuma && pesoStr){
+          // Mostrar desglose: peso bruto resultado - tara resultado = tachos
+          lineas.push(`${pesoStr} - ${taraStr} = ${r.resultado} tachos`);
+        } else {
+          lineas.push(`${r.resultado} tachos`);
         }
       });
     });
