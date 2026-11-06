@@ -10,7 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7f5;color:#1a1a1a;min-height:100vh}
 .app{max-width:560px;margin:0 auto;padding:0 0 2rem}
-.header{background:linear-gradient(160deg,#0A4A35 0%,#0F6E56 40%,#1D9E75 100%);color:#fff;text-align:center;padding:0;overflow:hidden}
+.header{position:relative;background:linear-gradient(160deg,#0A4A35 0%,#0F6E56 40%,#1D9E75 100%);color:#fff;text-align:center;padding:0;overflow:visible}
 .header-logo{display:block;width:100%;max-height:160px;object-fit:contain}
 .header-svg-wrap{display:flex;justify-content:center;align-items:center;padding:10px 0 6px}
 .header-sub{font-size:11px;color:rgba(255,220,160,0.75);padding-bottom:10px;letter-spacing:0.04em;font-weight:500}
@@ -22,6 +22,15 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;margin-top:5px;font-weight:500}
 .badge-warn{background:#FAEEDA;color:#854F0B}
 .badge-ok{background:#EAF3DE;color:#3B6D11}
+
+/* Menú */
+.menu-btn{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:10px;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.menu-btn:hover{background:rgba(255,255,255,0.28)}
+.menu-pop{display:none;position:absolute;top:56px;right:12px;min-width:220px;background:#fff;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.2);overflow:hidden;z-index:50;text-align:left}
+.menu-pop.show{display:block}
+.menu-pop button{width:100%;padding:13px 14px;background:none;border:none;font-size:14px;color:#1a1a1a;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.menu-pop button:hover{background:#f5f7f5}
+.menu-count{font-size:11px;background:#E1F5EE;color:#085041;border-radius:10px;padding:2px 8px;font-weight:600}
 
 /* Tabs */
 .tabs-wrap{padding:0 1rem;margin-bottom:4px}
@@ -41,6 +50,8 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .btn:hover{background:#f5f7f5;border-color:#1D9E75;color:#1D9E75}
 .btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75}
 .btn-primary:hover{background:#0F6E56;color:#fff}
+.btn-danger{background:#C0392B;color:#fff;border-color:#C0392B}
+.btn-danger:hover{background:#A32D2D;color:#fff;border-color:#A32D2D}
 .btn-edit{padding:5px 10px;background:#f5f7f5;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:11px;color:#555;font-family:inherit}
 .btn-edit:hover{border-color:#1D9E75;color:#1D9E75}
 .dropdown{border:1px solid #ddd;border-radius:8px;margin-top:4px;background:#fff;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
@@ -106,7 +117,7 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .savebtn:disabled{background:#9FE1CB;cursor:not-allowed}
 
 /* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;transition:transform 0.3s;z-index:999;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;transition:transform 0.3s;z-index:999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.success{background:#0F6E56}
 .toast.error{background:#A32D2D}
@@ -124,12 +135,66 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .empty-state{text-align:center;padding:3rem 1rem;color:#aaa;font-size:14px}
 .empty-icon{font-size:36px;display:block;margin-bottom:10px}
 .divider{height:1px;background:#e8e8e8;margin:1rem 0}
+
+/* Historial */
+.hist-overlay{display:none;position:fixed;inset:0;background:#f5f7f5;z-index:100;overflow-y:auto}
+.hist-overlay.show{display:block}
+.hist-wrap{max-width:560px;margin:0 auto;padding-bottom:2rem}
+.hist-head{position:sticky;top:0;z-index:5;background:linear-gradient(160deg,#0A4A35 0%,#0F6E56 60%,#1D9E75 100%);color:#fff;display:flex;align-items:center;gap:10px;padding:14px 14px}
+.hist-back{background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:8px;width:36px;height:36px;font-size:18px;cursor:pointer;font-family:inherit}
+.hist-title{font-size:17px;font-weight:700}
+.hist-body{padding:1rem}
+.h-day{font-size:12px;font-weight:700;color:#5F5E5A;text-transform:capitalize;letter-spacing:0.02em;margin:14px 0 8px}
+.h-day:first-child{margin-top:0}
+.h-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer}
+.h-name{font-size:15px;font-weight:700}
+.h-meta{font-size:11px;color:#888;margin-top:2px}
+.h-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.hb{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px}
+.hb.wa{background:#DDF7E5;color:#1a7a3a}
+.hb.sh{background:#E1F5EE;color:#085041}
+.hb.pend{background:#FAEEDA;color:#854F0B}
+.h-sum{font-size:12px;color:#555;margin-top:8px;line-height:1.5}
+.h-det{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #ddd}
+.h-det.show{display:block}
+.h-line{font-size:12px;color:#333;padding:4px 0;border-bottom:1px solid #f2f2f2}
+.h-line:last-child{border-bottom:none}
+.h-line b{display:block;font-size:12px}
+.h-line span{color:#777}
+.h-actions{display:flex;gap:6px;margin-top:10px}
+.h-actions .btn{flex:1;padding:7px 8px;font-size:12px}
+.h-empty{text-align:center;color:#aaa;padding:3rem 1rem;font-size:14px}
+
+/* Incluir pestañas */
+.inc-card{padding:10px 14px}
+.inc-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:14px;cursor:pointer;border-bottom:1px solid #f2f2f2}
+.inc-row:last-child{border-bottom:none}
+.inc-row input{width:18px;height:18px;accent-color:#1D9E75}
+.wabtn:disabled{background:#a7e8bf;cursor:not-allowed}
+.hist-bar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;background:#fff;border-top:1px solid #e8e8e8;padding:10px 14px}
+.hist-bar .wabtn{flex:1;padding:10px;font-size:14px}
+.h-row{display:flex;gap:10px;align-items:flex-start}
+.h-main{flex:1;min-width:0;cursor:pointer}
+.h-chk{width:20px;height:20px;margin-top:2px;accent-color:#1D9E75;flex-shrink:0}
+.h-hint{font-size:12px;color:#888;margin-bottom:10px}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px;max-width:380px;width:100%}
+.modal h3{font-size:16px;margin-bottom:8px}
+.modal p{font-size:13px;color:#555;line-height:1.5;margin-bottom:16px}
+.m-btns{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
 
 <div class="app">
   <div class="header">
+    <button class="menu-btn" onclick="toggleMenu(event)" aria-label="Menú">&#8942;</button>
+    <div class="menu-pop" id="menu-pop">
+      <button onclick="abrirHistorial()"><span>📋 Historial de ingresos</span><span class="menu-count" id="menu-count">0</span></button>
+    </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 16px 6px">
       <span style="font-size:30px;line-height:1">🫘</span>
       <span style="font-size:22px;font-weight:700;letter-spacing:0.01em;color:#fff">BeanFlow Point</span>
@@ -156,10 +221,39 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
   </div>
 </div>
 
+<!-- Historial -->
+<div class="hist-overlay" id="hist-overlay">
+  <div class="hist-wrap">
+    <div class="hist-head">
+      <button class="hist-back" onclick="cerrarHistorial()" aria-label="Volver">&#8592;</button>
+      <span class="hist-title">Historial de ingresos</span>
+    </div>
+    <div class="hist-body" id="hist-body"></div>
+    <div class="hist-bar" id="hist-bar" style="display:none">
+      <button class="btn" id="sel-all-btn" onclick="selTodos()">Seleccionar todos</button>
+      <button class="wabtn" id="hist-wa" onclick="enviarHistorialWA()" disabled>&#128233; WhatsApp (0)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmación -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="m-title"></h3>
+    <p id="m-msg"></p>
+    <div class="m-btns">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="m-ok"></button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVt5OA27k_gNF8pBgANPSYYrH-14vhSGn8x7LCbvHzciR5Clm0wbdL7l6oIh3aKzZg/exec";
+const LS_STATE = 'beanflow_state_v1';
+const LS_HIST  = 'beanflow_historial_v1';
 
 const PROVEEDORES_DB = [
   {nombre:"Carlos Andrade",codigo:"CAC-001"},
@@ -169,6 +263,7 @@ const PROVEEDORES_DB = [
   {nombre:"Asociación Río Verde",codigo:"CAC-004"},
   {nombre:"Pedro Zambrano",codigo:null},
 ];
+const BASE_LEN = PROVEEDORES_DB.length;
 
 const ORDEN = ['seco','especial','premium','fermentado','convencional'];
 const NOMBRES = {
@@ -194,9 +289,41 @@ const PRECIO_UNIT = {
 };
 
 let proveedores = [];
+let historial = [];
 let activeIdx = null;
 let nextId = 1;
 let addPanelVisible = false;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+// ── Persistencia local (este dispositivo) ──
+function persist(){
+  try{
+    localStorage.setItem(LS_STATE, JSON.stringify({
+      proveedores, activeIdx, nextId,
+      dbExtra: PROVEEDORES_DB.slice(BASE_LEN)
+    }));
+  }catch(e){}
+}
+function persistHist(){
+  try{ localStorage.setItem(LS_HIST, JSON.stringify(historial)); }catch(e){}
+}
+function restore(){
+  try{
+    const h = JSON.parse(localStorage.getItem(LS_HIST)||'[]');
+    if(Array.isArray(h)) historial = h;
+  }catch(e){ historial=[]; }
+  try{
+    const s = JSON.parse(localStorage.getItem(LS_STATE)||'null');
+    if(s){
+      if(Array.isArray(s.proveedores)) proveedores = s.proveedores;
+      nextId = s.nextId || (proveedores.reduce((m,p)=>Math.max(m,p.id),0)+1);
+      activeIdx = proveedores.length ? Math.min(s.activeIdx==null?0:s.activeIdx, proveedores.length-1) : null;
+      (s.dbExtra||[]).forEach(p=>{ if(!PROVEEDORES_DB.find(x=>x.nombre===p.nombre)) PROVEEDORES_DB.push(p); });
+    }
+  }catch(e){}
+}
 
 function nuevoProveedor(nombre, codigo){
   const id = nextId++;
@@ -225,9 +352,13 @@ function calcResultado(tipo, peso, tara){
   return ((rem<3?total-rem:total+(5-rem))/100).toFixed(2);
 }
 
+// Lee del campo en pantalla; si la pestaña no está visible, lee del estado guardado
 function getVal(tipo,pid,i,campo){
   const el = document.getElementById(`f-${pid}-${tipo}-${i}-${campo}`);
-  return el?el.value:'';
+  if(el) return el.value;
+  const prov = getProveedor(pid);
+  const p = prov && prov.partidas[tipo] && prov.partidas[tipo][i];
+  return p && p[campo]!=null ? String(p[campo]) : '';
 }
 
 function updateCalc(pid, tipo, i){
@@ -273,8 +404,7 @@ function saveEditNombre(pid){
   const nuevoNombre = inputEl.value.trim();
   if(!nuevoNombre) return;
   prov.nombre = nuevoNombre;
-  // Actualizar también en DB si existe
-  const enDb = PROVEEDORES_DB.find(p=>p.nombre===prov.nombre);
+  const enDb = PROVEEDORES_DB.find(p=>p.nombre===nuevoNombre);
   if(!enDb){ PROVEEDORES_DB.push({nombre:nuevoNombre,codigo:prov.codigo}); }
   renderTabs();
   renderPanel();
@@ -282,7 +412,6 @@ function saveEditNombre(pid){
 }
 
 function cancelEditNombre(pid){
-  const prov = getProveedor(pid);
   const displayEl = document.getElementById(`prov-name-display-${pid}`);
   const inputEl = document.getElementById(`prov-name-input-${pid}`);
   const btnEdit = document.getElementById(`prov-name-btn-${pid}`);
@@ -298,12 +427,13 @@ function renderTabs(){
   proveedores.forEach((p,idx)=>{
     const initials = p.nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     html += `<div class="tab${activeIdx===idx&&!addPanelVisible?' active':''}" onclick="setActive(${idx})">
-      ${initials} ${p.nombre.split(' ')[0]}
+      ${esc(initials)} ${esc(p.nombre.split(' ')[0])}${p.histId?' ✎':''}
       <span class="tab-x" onclick="event.stopPropagation();removeProveedor(${idx})">✕</span>
     </div>`;
   });
   html += `<button class="add-tab" onclick="showAddPanel()">+ Proveedor</button>`;
   bar.innerHTML = html;
+  persist();
 }
 
 function setActive(idx){
@@ -317,6 +447,7 @@ function removeProveedor(idx){
   proveedores.splice(idx,1);
   if(proveedores.length===0){ activeIdx=null; }
   else if(activeIdx>=proveedores.length){ activeIdx=proveedores.length-1; }
+  else if(idx<activeIdx){ activeIdx--; }
   renderTabs();
   renderPanel();
   renderResumenGlobal();
@@ -352,13 +483,14 @@ function renderPanel(){
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
       <div style="flex:1;min-width:0">
         <div class="prov-name-row">
-          <span class="prov-name-display" id="prov-name-display-${pid}">${prov.nombre}</span>
-          <input class="prov-name-input" id="prov-name-input-${pid}" type="text" style="display:none;flex:1" value="${prov.nombre}">
+          <span class="prov-name-display" id="prov-name-display-${pid}">${esc(prov.nombre)}</span>
+          <input class="prov-name-input" id="prov-name-input-${pid}" type="text" style="display:none;flex:1" value="${esc(prov.nombre)}">
           <button class="btn-edit" id="prov-name-btn-${pid}" onclick="startEditNombre(${pid})">✏️ Editar</button>
         </div>`;
   html += prov.codigo
-    ? `<span class="badge badge-ok">✓ ${prov.codigo}</span>`
+    ? `<span class="badge badge-ok">✓ ${esc(prov.codigo)}</span>`
     : `<span class="badge badge-warn">⚠ No certificado</span>`;
+  if(prov.histId) html += ` <span class="badge badge-warn">✎ Editando del historial</span>`;
   html += `</div></div>
     <span class="sec-label">Tipos de cacao</span>
     <div class="tipos-grid">`;
@@ -385,7 +517,6 @@ function renderPanel(){
       </div>`;
     ps.forEach((p,i)=>{
       if(esSeco){
-        // Cacao seco: 3 columnas (peso bruto, tara, bultos)
         html+=`<div class="partida">
           <div class="p-hdr">
             <span class="p-title">Partida ${i+1}</span>
@@ -394,26 +525,26 @@ function renderPanel(){
           <div class="row3-seco">
             <div>
               <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
-              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
+              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${esc(p.peso)}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
               <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
             </div>
             <div>
               <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
-              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
+              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${esc(p.tara)}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
               <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
             </div>
             <div>
               <label class="fl">Bultos <span style="font-weight:400;color:#1D9E75">— suma ej: 2+1</span></label>
-              <input type="text" id="f-${pid}-${tipo}-${i}-bultos" placeholder="ej: 2+1" value="${p.bultos||''}" oninput="onBultos(${pid},'${tipo}',${i})" style="letter-spacing:0.02em">
+              <input type="text" id="f-${pid}-${tipo}-${i}-bultos" placeholder="ej: 2+1" value="${esc(p.bultos||'')}" oninput="onBultos(${pid},'${tipo}',${i})" style="letter-spacing:0.02em">
               <div class="tara-hint" id="bh-${pid}-${tipo}-${i}"></div>
             </div>
           </div>
-          <div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${p.humedad||''}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>
+          <div class="hum-row"><label>Humedad (%)</label><input type="number" id="f-${pid}-${tipo}-${i}-humedad" step="0.1" min="0" max="100" placeholder="0.0" value="${esc(p.humedad||'')}" oninput="onField(${pid},'${tipo}',${i},'humedad')" inputmode="decimal"></div>
           <div class="price-row">
             <label>💲 Precio (opcional)</label>
             <div class="price-wrap">
               <span class="price-prefix">$</span>
-              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
+              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${esc(p.precio||'')}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
               <span class="price-unit">/quintal</span>
             </div>
           </div>
@@ -426,8 +557,7 @@ function renderPanel(){
           </div>
         </div>`;
       } else {
-        // Cacao en baba
-        const inclPesos = p.incluirPesos !== false; // default: true (no checked = no incluir; checked = incluir)
+        const inclPesos = p.incluirPesos !== false;
         html+=`<div class="partida">
           <div class="p-hdr">
             <span class="p-title">Partida ${i+1}</span>
@@ -436,12 +566,12 @@ function renderPanel(){
           <div class="row2">
             <div>
               <label class="fl">Peso bruto (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 50+20</span></label>
-              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${p.peso}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
+              <input type="text" id="f-${pid}-${tipo}-${i}-peso" placeholder="ej: 50+20" value="${esc(p.peso)}" oninput="onField(${pid},'${tipo}',${i},'peso')" style="letter-spacing:0.02em">
               <div class="tara-hint" id="ph-${pid}-${tipo}-${i}"></div>
             </div>
             <div>
               <label class="fl">Tara (lb) <span style="font-weight:400;color:#1D9E75">— suma ej: 1+2+1</span></label>
-              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${p.tara}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
+              <input type="text" id="f-${pid}-${tipo}-${i}-tara" placeholder="ej: 1+2+1" value="${esc(p.tara)}" oninput="onField(${pid},'${tipo}',${i},'tara')" style="letter-spacing:0.02em">
               <div class="tara-hint" id="th-${pid}-${tipo}-${i}"></div>
             </div>
           </div>
@@ -456,7 +586,7 @@ function renderPanel(){
             <label>💲 Precio (opcional)</label>
             <div class="price-wrap">
               <span class="price-prefix">$</span>
-              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${p.precio||''}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
+              <input type="number" id="f-${pid}-${tipo}-${i}-precio" step="0.01" min="0" placeholder="0.00" value="${esc(p.precio||'')}" oninput="onField(${pid},'${tipo}',${i},'precio')" inputmode="decimal" style="padding:7px 10px;font-size:14px">
               <span class="price-unit">/tacho</span>
             </div>
           </div>
@@ -481,6 +611,7 @@ function renderPanel(){
       if(tipo==='seco') updateBultos(pid,tipo,i);
     });
   });
+  persist();
 }
 
 function onBultos(pid,tipo,i){
@@ -501,6 +632,7 @@ function onTogglePesos(pid,tipo,i){
   const prov = getProveedor(pid);
   const el = document.getElementById(`f-${pid}-${tipo}-${i}-incluirPesos`);
   if(prov && el) prov.partidas[tipo][i].incluirPesos = el.checked;
+  persist();
 }
 
 function toggleTipo(pid, tipo, card){
@@ -537,13 +669,15 @@ function buscarAdd(){
   const m = PROVEEDORES_DB.filter(p=>p.nombre.toLowerCase().includes(q)&&!proveedores.find(x=>x.nombre===p.nombre));
   if(!m.length){dd.innerHTML='';dd.className='';return;}
   dd.className='dropdown';
-  dd.innerHTML=m.map(p=>`<div class="dd-item" onmousedown="seleccionarAdd(${JSON.stringify(p.nombre)},${JSON.stringify(p.codigo)})">${p.nombre}</div>`).join('');
+  dd.innerHTML=m.map(p=>`<div class="dd-item" onmousedown="seleccionarAdd(${PROVEEDORES_DB.indexOf(p)})">${esc(p.nombre)}</div>`).join('');
 }
 
-function seleccionarAdd(nombre, codigo){
-  document.getElementById('add-prov-input').value=nombre;
+function seleccionarAdd(idx){
+  const p = PROVEEDORES_DB[idx];
+  if(!p) return;
+  document.getElementById('add-prov-input').value=p.nombre;
   document.getElementById('add-dropdown').innerHTML='';
-  _confirmar(nombre,codigo);
+  _confirmar(p.nombre,p.codigo);
 }
 
 function confirmarAgregar(){
@@ -569,7 +703,7 @@ function renderResumenGlobal(){
   const btns = document.getElementById('btns-row');
   let html='';
   let total=0;
-  proveedores.forEach(prov=>{
+  enviables().forEach(prov=>{
     let rows=[];
     ORDEN.forEach(tipo=>{
       if(!prov.tipos[tipo]) return;
@@ -584,10 +718,10 @@ function renderResumenGlobal(){
           const unidad=UNIDADES[tipo];
           const precioUnit=PRECIO_UNIT[tipo];
           let label=`${NOMBRES[tipo]} P${i+1}`;
-          if(hum) label+=` · Hum: ${hum}%`;
+          if(hum) label+=` · Hum: ${esc(hum)}%`;
           if(bultos){ const bv=calcTara(bultos); if(bv!==null) label+=` · ${Math.round(bv)} bultos`; }
           let value=`${res} ${unidad}`;
-          if(precio) value+=` · $${precio}/${precioUnit}`;
+          if(precio) value+=` · $${esc(precio)}/${precioUnit}`;
           rows.push({label,value});
           total++;
         }
@@ -595,56 +729,97 @@ function renderResumenGlobal(){
     });
     if(!rows.length) return;
     html+=`<div class="summary-card">
-      <div class="sum-prov">👤 ${prov.nombre} — ${prov.codigo||'No certificado'}</div>`;
+      <div class="sum-prov">👤 ${esc(prov.nombre)} — ${esc(prov.codigo||'No certificado')}</div>`;
     rows.forEach(r=>{ html+=`<div class="sum-row"><span>${r.label}</span><span>${r.value}</span></div>`; });
     html+=`</div>`;
   });
-  if(total>0){div.style.display='';btns.style.display='grid';c.innerHTML=html;}
-  else{div.style.display='none';btns.style.display='none';c.innerHTML='';}
+  let sel='';
+  const otros=proveedores.filter((p,i)=>i!==activeIdx&&registrosDe([p]).length);
+  if(otros.length){
+    sel=`<div class="card inc-card"><span class="sec-label">Incluir otras pestañas en el envío</span>`+
+      otros.map(p=>`<label class="inc-row"><input type="checkbox" ${p.incluir?'checked':''} onchange="toggleIncluir(${p.id},this.checked)"><span>${esc(p.nombre)}</span></label>`).join('')+`</div>`;
+  }
+  div.style.display=(total>0||sel)?'':'none';
+  btns.style.display=total>0?'grid':'none';
+  c.innerHTML=sel+html;
+  persist();
 }
 
-function obtenerRegistros(){
-  const fecha = new Date().toLocaleDateString('es-EC');
-  let registros=[];
-  proveedores.forEach(prov=>{
+// Genera registros a partir del estado guardado (funciona con cualquier pestaña, visible o no)
+function registrosDe(lista, fecha){
+  fecha = fecha || new Date().toLocaleDateString('es-EC');
+  const out=[];
+  lista.forEach(prov=>{
     ORDEN.forEach(tipo=>{
       if(!prov.tipos[tipo]) return;
-      prov.partidas[tipo].forEach((_,i)=>{
-        const peso=getVal(tipo,prov.id,i,'peso');
-        const tara=getVal(tipo,prov.id,i,'tara');
-        const res=calcResultado(tipo,peso,tara);
-        if(res!==null){
-          const bultosRaw = tipo==='seco'?getVal(tipo,prov.id,i,'bultos'):'';
-          const bultosVal = bultosRaw ? calcTara(bultosRaw) : null;
-          registros.push({
-            fecha,
-            proveedor: prov.nombre,
-            codigo: prov.codigo||'NO CERTIFICADO',
-            tipo: NOMBRES[tipo],
-            partida: i+1,
-            peso: peso,
-            tara: tara||'0',
-            resultado: res,
-            unidad: UNIDADES[tipo],
-            humedad: tipo==='seco'?getVal(tipo,prov.id,i,'humedad'):'',
-            precio: getVal(tipo,prov.id,i,'precio'),
-            precioUnidad: PRECIO_UNIT[tipo],
-            bultos: bultosVal!==null ? Math.round(bultosVal) : '',
-            bultosRaw: bultosRaw,
-            incluirPesos: tipo==='seco' ? true : (()=>{ const el=document.getElementById(`f-${prov.id}-${tipo}-${i}-incluirPesos`); return el?el.checked:false; })()
-          });
-        }
+      (prov.partidas[tipo]||[]).forEach((p,i)=>{
+        const res=calcResultado(tipo,p.peso||'',p.tara||'');
+        if(res===null) return;
+        const seco=tipo==='seco';
+        const bRaw=seco?(p.bultos||''):'';
+        const bv=bRaw?calcTara(bRaw):null;
+        out.push({
+          fecha,
+          proveedor: prov.nombre,
+          codigo: prov.codigo||'NO CERTIFICADO',
+          tipo: NOMBRES[tipo],
+          partida: i+1,
+          peso: p.peso||'',
+          tara: p.tara||'0',
+          resultado: res,
+          unidad: UNIDADES[tipo],
+          humedad: seco?(p.humedad||''):'',
+          precio: p.precio||'',
+          precioUnidad: PRECIO_UNIT[tipo],
+          bultos: bv!==null ? Math.round(bv) : '',
+          bultosRaw: bRaw,
+          incluirPesos: seco ? true : p.incluirPesos!==false
+        });
       });
     });
   });
-  return registros;
+  return registros_ok(out);
 }
+function registros_ok(a){ return a; }
+// Por defecto solo la pestaña visible; las demás solo si se marcan en "Incluir otras pestañas"
+function enviables(){ return proveedores.filter((p,i)=>i===activeIdx||p.incluir); }
+function toggleIncluir(pid,checked){
+  const p=getProveedor(pid);
+  if(p){ p.incluir=checked; renderResumenGlobal(); }
+}
+function obtenerRegistros(){ return registrosDe(enviables()); }
 
 function showToast(msg, type=''){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show '+(type);
-  setTimeout(()=>{ t.className='toast'; },3000);
+  setTimeout(()=>{ t.className='toast'; },3200);
+}
+
+// ── Historial: registrar envíos ──
+function registrarHistorial(canal){
+  const now = Date.now();
+  enviables().forEach(prov=>{
+    if(!registrosDe([prov]).length) return;
+    const snap = clone({nombre:prov.nombre,codigo:prov.codigo,tipos:prov.tipos,partidas:prov.partidas});
+    let e = prov.histId ? historial.find(h=>h.id===prov.histId) : null;
+    if(e){
+      e.snap = snap;
+      e.canales[canal] = true;
+      e.editado = now;
+    } else {
+      e = {id:'h'+now+'_'+prov.id, ts:now, snap, canales:{whatsapp:false,sheets:false}};
+      e.canales[canal] = true;
+      historial.push(e);
+      prov.histId = e.id;
+    }
+  });
+  proveedores.forEach(p=>{ delete p.incluir; });
+  persistHist();
+  persist();
+  renderTabs();
+  renderResumenGlobal();
+  actualizarContador();
 }
 
 async function guardarEnSheets(){
@@ -660,6 +835,7 @@ async function guardarEnSheets(){
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({registros})
     });
+    registrarHistorial('sheets');
     showToast('✓ Guardado en Google Sheets','success');
   } catch(e){
     showToast('Error al guardar. Revisa tu conexión','error');
@@ -671,14 +847,19 @@ async function guardarEnSheets(){
 function enviarWhatsApp(){
   const registros = obtenerRegistros();
   if(!registros.length){ showToast('No hay partidas completas para enviar','error'); return; }
-  let lineas=[];
+  const url = 'https://wa.me/?text='+encodeURIComponent(textoWhatsApp(registros));
+  registrarHistorial('whatsapp');
+  window.open(url,'_blank');
+}
 
-  // Agrupar por proveedor
+function textoWhatsApp(registros){
+  let lineas=[];
   const porProveedor = {};
   registros.forEach(r=>{
-    if(!porProveedor[r.proveedor]) porProveedor[r.proveedor]={info:r, secos:[], baba:[]};
-    if(r.tipo==='Cacao seco') porProveedor[r.proveedor].secos.push(r);
-    else porProveedor[r.proveedor].baba.push(r);
+    const k = r._k||r.proveedor;
+    if(!porProveedor[k]) porProveedor[k]={info:r, secos:[], baba:[]};
+    if(r.tipo==='Cacao seco') porProveedor[k].secos.push(r);
+    else porProveedor[k].baba.push(r);
   });
 
   Object.values(porProveedor).forEach((pData, idx)=>{
@@ -686,13 +867,9 @@ function enviarWhatsApp(){
     const certLabel = r0.codigo && r0.codigo!=='NO CERTIFICADO' ? r0.codigo : 'NO CERTIFICADO';
 
     if(idx>0) lineas.push('');
-
-    // Nombre en negritas WhatsApp
     lineas.push(`*${r0.proveedor} (${certLabel})*`);
 
-    // ── Cacao seco ──
     pData.secos.forEach(r=>{
-      // Calcular valores numéricos para la fórmula
       const pesoNum = calcTara(r.peso);
       const taraNum = calcTara(r.tara);
       const pesoStr = pesoNum!==null ? pesoNum.toFixed(2) : (r.peso||'0');
@@ -702,17 +879,15 @@ function enviarWhatsApp(){
       lineas.push(`P${r.partida}: Cacao seco${precioStr}:`);
       lineas.push(`${pesoStr} - ${taraStr} = ${r.resultado} Lb`);
 
-      // Bultos y humedad
       let bultosHumLine = '';
       if(r.bultos!=='') bultosHumLine += `${r.bultos} Bultos`;
       if(r.humedad){ bultosHumLine += (bultosHumLine?' ':'') + `al ${r.humedad} %`; }
       if(bultosHumLine) lineas.push(bultosHumLine);
     });
 
-    // ── Cacao en baba ──
     const tiposBaba = {};
     pData.baba.forEach(r=>{
-      const key = r.tipo; // ej: "Cacao especial"
+      const key = r.tipo;
       if(!tiposBaba[key]) tiposBaba[key]=[];
       tiposBaba[key].push(r);
     });
@@ -733,11 +908,198 @@ function enviarWhatsApp(){
       });
     });
   });
-
-  window.open('https://wa.me/?text='+encodeURIComponent(lineas.join('\n')),'_blank');
+  return lineas.join('\n');
 }
 
-showAddPanel();
+// ── Menú ──
+function toggleMenu(ev){
+  ev.stopPropagation();
+  actualizarContador();
+  document.getElementById('menu-pop').classList.toggle('show');
+}
+document.addEventListener('click',()=>document.getElementById('menu-pop').classList.remove('show'));
+function actualizarContador(){ document.getElementById('menu-count').textContent = historial.length; }
+
+// ── Modal de confirmación ──
+function showConfirm(titulo, msg, okLabel, cb, peligro){
+  document.getElementById('m-title').textContent = titulo;
+  document.getElementById('m-msg').textContent = msg;
+  const ok = document.getElementById('m-ok');
+  ok.textContent = okLabel;
+  ok.className = 'btn ' + (peligro ? 'btn-danger' : 'btn-primary');
+  ok.onclick = ()=>{ closeModal(); cb(); };
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+// ── Historial de ingresos ──
+function abrirHistorial(){
+  document.getElementById('menu-pop').classList.remove('show');
+  renderHistorial();
+  document.getElementById('hist-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function cerrarHistorial(){
+  document.getElementById('hist-overlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+
+function fmtDia(ts){
+  const d = new Date(ts), hoy = new Date(), ayer = new Date();
+  ayer.setDate(ayer.getDate()-1);
+  if(d.toDateString()===hoy.toDateString()) return 'Hoy';
+  if(d.toDateString()===ayer.toDateString()) return 'Ayer';
+  return d.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+function detalleLinea(r){
+  const unidad = r.unidad;
+  const pn = calcTara(r.peso), tn = calcTara(r.tara);
+  const pesoStr = pn!==null ? pn.toFixed(2) : (r.peso||'0');
+  const taraStr = tn!==null ? tn.toFixed(2) : (r.tara||'0');
+  let extra=[];
+  if(r.bultos!=='') extra.push(`${r.bultos} bultos`);
+  if(r.humedad) extra.push(`humedad ${esc(r.humedad)}%`);
+  if(r.precio) extra.push(`$${esc(r.precio)}/${r.precioUnidad}`);
+  return `<div class="h-line"><b>${esc(r.tipo)} · P${r.partida}</b>
+    <span>${pesoStr} − ${taraStr} = <strong>${r.resultado} ${unidad}</strong></span>
+    ${extra.length?`<br><span>${extra.join(' · ')}</span>`:''}</div>`;
+}
+
+let histSel = new Set();
+
+function updateHistBar(){
+  const n=histSel.size;
+  const b=document.getElementById('hist-wa');
+  b.innerHTML='&#128233; WhatsApp ('+n+')';
+  b.disabled=n===0;
+  const total=document.querySelectorAll('.h-chk').length;
+  document.getElementById('sel-all-btn').textContent=(total&&n===total)?'Quitar selección':'Seleccionar todos';
+  document.getElementById('hist-bar').style.display=historial.length?'flex':'none';
+}
+function toggleSel(id,ch){ if(ch) histSel.add(id); else histSel.delete(id); updateHistBar(); }
+function selTodos(){
+  const all=document.querySelectorAll('.h-chk');
+  const marcar=histSel.size!==all.length;
+  histSel.clear();
+  all.forEach(c=>{ c.checked=marcar; if(marcar) histSel.add(c.dataset.id); });
+  updateHistBar();
+}
+function enviarHistorialWA(){
+  const sel=historial.filter(h=>histSel.has(h.id)).sort((a,b)=>a.ts-b.ts);
+  let regs=[];
+  sel.forEach(e=>{
+    registrosDe([e.snap], new Date(e.ts).toLocaleDateString('es-EC')).forEach(r=>{ r._k=e.id; regs.push(r); });
+  });
+  if(!regs.length){ showToast('No hay partidas completas para enviar','error'); return; }
+  const url='https://wa.me/?text='+encodeURIComponent(textoWhatsApp(regs));
+  sel.forEach(e=>{ e.canales.whatsapp=true; });
+  persistHist();
+  histSel.clear();
+  renderHistorial();
+  window.open(url,'_blank');
+}
+
+function renderHistorial(){
+  const body = document.getElementById('hist-body');
+  histSel = new Set([...histSel].filter(id=>historial.find(h=>h.id===id)));
+  if(!historial.length){
+    body.innerHTML = `<div class="h-empty"><span class="empty-icon">📋</span>Aún no hay ingresos.<br>Aparecerán aquí al enviar por WhatsApp o guardar en Sheets.</div>`;
+    updateHistBar();
+    return;
+  }
+  const lista = historial.slice().sort((a,b)=>b.ts-a.ts);
+  let html='<div class="h-hint">Toca un ingreso para abrir su pestaña. Marca los que quieras enviar por WhatsApp.</div>', diaActual='';
+  lista.forEach(e=>{
+    const dia = new Date(e.ts).toDateString();
+    if(dia!==diaActual){
+      diaActual = dia;
+      html += `<div class="h-day">${esc(fmtDia(e.ts))}</div>`;
+    }
+    const regs = registrosDe([e.snap], new Date(e.ts).toLocaleDateString('es-EC'));
+    const hora = new Date(e.ts).toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'});
+    const cod = e.snap.codigo || 'No certificado';
+    const resumen = regs.map(r=>`${esc(r.tipo.replace('Cacao ',''))} P${r.partida}: ${r.resultado} ${r.unidad}`).join(' · ');
+    html += `<div class="h-card">
+      <div class="h-row">
+        <input type="checkbox" class="h-chk" data-id="${e.id}" ${histSel.has(e.id)?'checked':''} onchange="toggleSel('${e.id}',this.checked)">
+        <div class="h-main" onclick="editarHistorial('${e.id}')">
+          <div class="h-top">
+            <div>
+              <div class="h-name">${esc(e.snap.nombre)}</div>
+              <div class="h-meta">🕒 ${hora} · ${esc(cod)}${e.editado?' · editado':''}</div>
+            </div>
+            <div class="h-badges">
+              ${e.canales.whatsapp?'<span class="hb wa">WhatsApp</span>':''}
+              ${e.canales.sheets?'<span class="hb sh">Sheets</span>':''}
+            </div>
+          </div>
+          <div class="h-sum">${resumen||'Sin partidas completas'}</div>
+        </div>
+      </div>
+      <div class="h-det" id="hd-${e.id}">${regs.map(detalleLinea).join('')}</div>
+      <div class="h-actions">
+        <button class="btn" onclick="toggleDetalle('${e.id}')">👁 Ver detalle</button>
+        <button class="btn" style="color:#A32D2D" onclick="pedirEliminar('${e.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`;
+  });
+  body.innerHTML = html;
+  updateHistBar();
+}
+
+function toggleDetalle(id){
+  const el = document.getElementById('hd-'+id);
+  if(el) el.classList.toggle('show');
+}
+
+function editarHistorial(id){
+  const e = historial.find(h=>h.id===id);
+  if(!e) return;
+  let idx = proveedores.findIndex(p=>p.histId===id);
+  if(idx<0){
+    const s = clone(e.snap);
+    proveedores.push({id:nextId++, nombre:s.nombre, codigo:s.codigo, tipos:s.tipos, partidas:s.partidas, histId:id});
+    idx = proveedores.length-1;
+  }
+  activeIdx = idx;
+  addPanelVisible = false;
+  cerrarHistorial();
+  renderTabs();
+  renderPanel();
+  renderResumenGlobal();
+  showToast('Pestaña abierta desde el historial');
+}
+
+function pedirEliminar(id){
+  const e = historial.find(h=>h.id===id);
+  if(!e) return;
+  showConfirm('¿Eliminar este ingreso?',
+    `Se eliminará "${e.snap.nombre}" del historial de este dispositivo. No borra lo ya guardado en Google Sheets ni lo enviado por WhatsApp.`,
+    'Sí, eliminar', ()=>{
+      historial = historial.filter(h=>h.id!==id);
+      histSel.delete(id);
+      proveedores.forEach(p=>{ if(p.histId===id) delete p.histId; });
+      persistHist();
+      persist();
+      renderTabs();
+      renderHistorial();
+      actualizarContador();
+      showToast('Ingreso eliminado','success');
+    }, true);
+}
+
+// ── Inicio: restaura pestañas e historial del dispositivo ──
+restore();
+actualizarContador();
+if(proveedores.length){
+  if(activeIdx===null) activeIdx=0;
+  renderTabs();
+  renderPanel();
+  renderResumenGlobal();
+} else {
+  showAddPanel();
+}
 </script>
 </body>
 </html>
