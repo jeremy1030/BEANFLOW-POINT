@@ -185,6 +185,20 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 .modal h3{font-size:16px;margin-bottom:8px}
 .modal p{font-size:13px;color:#555;line-height:1.5;margin-bottom:16px}
 .m-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* Gestor de proveedores */
+.pv-hint{font-size:12px;color:#777;line-height:1.4;margin-bottom:8px}
+.pv-body textarea{width:100%;min-height:90px;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px;font-family:inherit;margin:8px 0;resize:vertical}
+.pv-body textarea:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,0.1)}
+.pv-body input[type=file]{font-size:13px;width:100%}
+.pv-row{display:flex;gap:8px;margin-top:10px}
+.pv-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.pv-main{flex:1;min-width:0}
+.pv-name{font-size:14px;font-weight:600}
+.pv-code{font-size:12px;color:#3B6D11}
+.pv-code.warn{color:#854F0B}
+.pv-btn{border:1px solid #ddd;background:#fff;border-radius:8px;padding:6px 9px;cursor:pointer;font-size:14px}
+.pv-btn:hover{border-color:#1D9E75}
 </style>
 </head>
 <body>
@@ -194,6 +208,7 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
     <button class="menu-btn" onclick="toggleMenu(event)" aria-label="Menú">&#8942;</button>
     <div class="menu-pop" id="menu-pop">
       <button onclick="abrirHistorial()"><span>📋 Historial de ingresos</span><span class="menu-count" id="menu-count">0</span></button>
+      <button onclick="abrirProveedores()"><span>👥 Proveedores (listado)</span><span class="menu-count" id="menu-count-prov">0</span></button>
     </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 16px 6px">
       <span style="font-size:30px;line-height:1">🫘</span>
@@ -236,6 +251,39 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
   </div>
 </div>
 
+<!-- Proveedores -->
+<div class="hist-overlay" id="prov-overlay">
+  <div class="hist-wrap">
+    <div class="hist-head">
+      <button class="hist-back" onclick="cerrarProveedores()" aria-label="Volver">&#8592;</button>
+      <span class="hist-title">Proveedores</span>
+    </div>
+    <div class="hist-body pv-body">
+      <div class="card">
+        <span class="sec-label" id="pv-form-label">Añadir proveedor</span>
+        <input type="text" id="pv-nombre" placeholder="Nombre completo" autocomplete="off">
+        <input type="text" id="pv-codigo" placeholder="Código (vacío = No certificado)" autocomplete="off" style="margin-top:8px">
+        <div class="pv-row">
+          <button class="btn btn-primary" id="pv-save" onclick="guardarProv()">+ Añadir</button>
+          <button class="btn" id="pv-cancel" style="display:none" onclick="cancelarEdicionProv()">Cancelar</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="sec-label">Subir listado</span>
+        <p class="pv-hint">Archivo CSV o TXT, un proveedor por línea: <b>Nombre completo, Código</b>. Sin código = No certificado. Desde Excel: Guardar como → CSV.</p>
+        <input type="file" id="pv-file" accept=".csv,.txt,text/csv,text/plain" onchange="importarArchivo(this)">
+        <textarea id="pv-paste" placeholder="…o pega aquí la lista (una línea por proveedor)"></textarea>
+        <button class="btn" onclick="importarTexto(document.getElementById('pv-paste').value)">Importar lista pegada</button>
+      </div>
+      <div class="card">
+        <span class="sec-label" id="pv-count"></span>
+        <input type="text" id="pv-filter" placeholder="Filtrar listado..." oninput="pvFilter=this.value;renderProvList()" autocomplete="off">
+        <div id="pv-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Confirmación -->
 <div class="modal-bg" id="modal">
   <div class="modal">
@@ -254,6 +302,7 @@ input:focus{outline:none;border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,1
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVt5OA27k_gNF8pBgANPSYYrH-14vhSGn8x7LCbvHzciR5Clm0wbdL7l6oIh3aKzZg/exec";
 const LS_STATE = 'beanflow_state_v1';
 const LS_HIST  = 'beanflow_historial_v1';
+const LS_DB    = 'beanflow_db_v1';
 
 const PROVEEDORES_DB = [
   {nombre:"Carlos Andrade",codigo:"CAC-001"},
@@ -296,6 +345,16 @@ let addPanelVisible = false;
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const ORG_WORDS = ['finca','asociacion','cooperativa','hacienda','centro','empresa','compania','corporacion','grupo','comite','union','agricola'];
+// Reporte: 1 nombre + 1 apellido (fincas y asociaciones quedan completas)
+function nombreCorto(n){
+  const w = String(n||'').trim().split(/\s+/).filter(Boolean);
+  if(w.length<=2) return w.join(' ');
+  if(ORG_WORDS.includes(norm(w[0]))) return w.join(' ');
+  if(w.length===3) return w[0]+' '+w[1];
+  return w[0]+' '+w[2];
+}
 
 // ── Persistencia local (este dispositivo) ──
 function persist(){
@@ -305,7 +364,10 @@ function persist(){
       dbExtra: PROVEEDORES_DB.slice(BASE_LEN)
     }));
   }catch(e){}
+  try{ localStorage.setItem(LS_DB, JSON.stringify(PROVEEDORES_DB)); }catch(e){}
 }
+window.addEventListener('pagehide',()=>{ persist(); persistHist(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ persist(); persistHist(); } });
 function persistHist(){
   try{ localStorage.setItem(LS_HIST, JSON.stringify(historial)); }catch(e){}
 }
@@ -321,6 +383,13 @@ function restore(){
       nextId = s.nextId || (proveedores.reduce((m,p)=>Math.max(m,p.id),0)+1);
       activeIdx = proveedores.length ? Math.min(s.activeIdx==null?0:s.activeIdx, proveedores.length-1) : null;
       (s.dbExtra||[]).forEach(p=>{ if(!PROVEEDORES_DB.find(x=>x.nombre===p.nombre)) PROVEEDORES_DB.push(p); });
+    }
+  }catch(e){}
+  try{
+    const db = JSON.parse(localStorage.getItem(LS_DB)||'null');
+    if(Array.isArray(db) && db.every(p=>p&&typeof p.nombre==='string')){
+      PROVEEDORES_DB.length = 0;
+      db.forEach(p=>PROVEEDORES_DB.push({nombre:p.nombre,codigo:p.codigo||null}));
     }
   }catch(e){}
 }
@@ -663,13 +732,20 @@ function removePartida(pid, tipo, i){
 }
 
 function buscarAdd(){
-  const q = document.getElementById('add-prov-input').value.toLowerCase();
+  const q = norm(document.getElementById('add-prov-input').value).trim();
   const dd = document.getElementById('add-dropdown');
   if(!q){dd.innerHTML='';dd.className='';return;}
-  const m = PROVEEDORES_DB.filter(p=>p.nombre.toLowerCase().includes(q)&&!proveedores.find(x=>x.nombre===p.nombre));
+  const toks = q.split(/\s+/).filter(Boolean);
+  const m = PROVEEDORES_DB
+    .filter(p=>!proveedores.find(x=>norm(x.nombre)===norm(p.nombre)))
+    .map(p=>{ const hay=norm(p.nombre+' '+(p.codigo||'')); return {p, score:toks.filter(t=>hay.includes(t)).length}; })
+    .filter(o=>o.score>0)
+    .sort((a,b)=>b.score-a.score || a.p.nombre.localeCompare(b.p.nombre,'es'))
+    .slice(0,8)
+    .map(o=>o.p);
   if(!m.length){dd.innerHTML='';dd.className='';return;}
   dd.className='dropdown';
-  dd.innerHTML=m.map(p=>`<div class="dd-item" onmousedown="seleccionarAdd(${PROVEEDORES_DB.indexOf(p)})">${esc(p.nombre)}</div>`).join('');
+  dd.innerHTML=m.map(p=>`<div class="dd-item" onmousedown="seleccionarAdd(${PROVEEDORES_DB.indexOf(p)})">${esc(p.nombre)} <span style="font-size:12px;color:${p.codigo?'#3B6D11':'#854F0B'}">${p.codigo?esc(p.codigo):'No certificado'}</span></div>`).join('');
 }
 
 function seleccionarAdd(idx){
@@ -686,6 +762,7 @@ function confirmarAgregar(){
   const existe = PROVEEDORES_DB.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
   if(existe){ _confirmar(existe.nombre,existe.codigo); return; }
   PROVEEDORES_DB.push({nombre,codigo:null});
+  persist();
   _confirmar(nombre,null);
 }
 
@@ -867,7 +944,7 @@ function textoWhatsApp(registros){
     const certLabel = r0.codigo && r0.codigo!=='NO CERTIFICADO' ? r0.codigo : 'NO CERTIFICADO';
 
     if(idx>0) lineas.push('');
-    lineas.push(`*${r0.proveedor} (${certLabel})*`);
+    lineas.push(`*${nombreCorto(r0.proveedor)} (${certLabel})*`);
 
     pData.secos.forEach(r=>{
       const pesoNum = calcTara(r.peso);
@@ -918,7 +995,7 @@ function toggleMenu(ev){
   document.getElementById('menu-pop').classList.toggle('show');
 }
 document.addEventListener('click',()=>document.getElementById('menu-pop').classList.remove('show'));
-function actualizarContador(){ document.getElementById('menu-count').textContent = historial.length; }
+function actualizarContador(){ document.getElementById('menu-count').textContent = historial.length; const c=document.getElementById('menu-count-prov'); if(c) c.textContent = PROVEEDORES_DB.length; }
 
 // ── Modal de confirmación ──
 function showConfirm(titulo, msg, okLabel, cb, peligro){
@@ -1087,6 +1164,117 @@ function pedirEliminar(id){
       actualizarContador();
       showToast('Ingreso eliminado','success');
     }, true);
+}
+
+// ── Gestor de proveedores ──
+let pvEdit=null, pvFilter='';
+function abrirProveedores(){
+  document.getElementById('menu-pop').classList.remove('show');
+  cancelarEdicionProv();
+  renderProvList();
+  document.getElementById('prov-overlay').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function cerrarProveedores(){
+  document.getElementById('prov-overlay').classList.remove('show');
+  document.body.style.overflow='';
+  actualizarContador();
+}
+function limpiarCodigo(c){
+  c=String(c||'').trim().replace(/^["']|["']$/g,'').trim();
+  if(!c||['-','--','n/a','na','no certificado','nocertificado','sin codigo','ninguno','no'].includes(norm(c))) return null;
+  return c;
+}
+function renderProvList(){
+  const f=norm(pvFilter);
+  const items=PROVEEDORES_DB.map((p,i)=>({p,i}))
+    .filter(o=>!f||norm(o.p.nombre+' '+(o.p.codigo||'')).includes(f))
+    .sort((a,b)=>a.p.nombre.localeCompare(b.p.nombre,'es'));
+  document.getElementById('pv-count').textContent=`Listado (${PROVEEDORES_DB.length})`;
+  document.getElementById('pv-list').innerHTML = items.length
+    ? items.map(o=>`<div class="pv-item">
+        <div class="pv-main">
+          <div class="pv-name">${esc(o.p.nombre)}</div>
+          <div class="pv-code${o.p.codigo?'':' warn'}">${o.p.codigo?'✓ '+esc(o.p.codigo):'⚠ No certificado'}</div>
+        </div>
+        <button class="pv-btn" onclick="editarProv(${o.i})" aria-label="Editar">✎</button>
+        <button class="pv-btn" onclick="pedirEliminarProv(${o.i})" aria-label="Eliminar">🗑</button>
+      </div>`).join('')
+    : '<div class="empty-state" style="padding:1.2rem">Sin resultados</div>';
+}
+function guardarProv(){
+  const nombre=document.getElementById('pv-nombre').value.trim().replace(/\s+/g,' ');
+  const codigo=limpiarCodigo(document.getElementById('pv-codigo').value);
+  if(!nombre){ showToast('Escribe el nombre completo','error'); return; }
+  if(pvEdit!==null){
+    PROVEEDORES_DB[pvEdit]={nombre,codigo};
+    showToast('✓ Proveedor actualizado','success');
+  } else {
+    const ex=PROVEEDORES_DB.find(p=>norm(p.nombre)===norm(nombre));
+    if(ex){ ex.codigo=codigo; showToast('Ya existía: se actualizó su código','success'); }
+    else { PROVEEDORES_DB.push({nombre,codigo}); showToast('✓ Proveedor añadido','success'); }
+  }
+  persist();
+  cancelarEdicionProv();
+  renderProvList();
+}
+function editarProv(i){
+  const p=PROVEEDORES_DB[i]; if(!p) return;
+  pvEdit=i;
+  document.getElementById('pv-nombre').value=p.nombre;
+  document.getElementById('pv-codigo').value=p.codigo||'';
+  document.getElementById('pv-form-label').textContent='Editar proveedor';
+  document.getElementById('pv-save').textContent='Guardar cambios';
+  document.getElementById('pv-cancel').style.display='';
+  document.getElementById('prov-overlay').scrollTop=0;
+  document.getElementById('pv-nombre').focus();
+}
+function cancelarEdicionProv(){
+  pvEdit=null;
+  document.getElementById('pv-nombre').value='';
+  document.getElementById('pv-codigo').value='';
+  document.getElementById('pv-form-label').textContent='Añadir proveedor';
+  document.getElementById('pv-save').textContent='+ Añadir';
+  document.getElementById('pv-cancel').style.display='none';
+}
+function pedirEliminarProv(i){
+  const p=PROVEEDORES_DB[i]; if(!p) return;
+  showConfirm('¿Eliminar proveedor?', `Se quitará "${p.nombre}" del listado. No afecta pestañas ni historial ya creados.`, 'Eliminar', ()=>{
+    PROVEEDORES_DB.splice(i,1);
+    if(pvEdit!==null) cancelarEdicionProv();
+    persist();
+    renderProvList();
+  }, true);
+}
+function importarArchivo(inp){
+  const file=inp.files&&inp.files[0]; if(!file) return;
+  if(/\.xlsx?$/i.test(file.name)){ showToast('Guarda el Excel como CSV y súbelo de nuevo','error'); inp.value=''; return; }
+  const leer=enc=>new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(String(r.result)); r.readAsText(file,enc); });
+  leer('utf-8').then(async t=>{
+    if(t.includes('\uFFFD')) t=await leer('windows-1252');
+    importarTexto(t);
+    inp.value='';
+  });
+}
+function importarTexto(texto){
+  const lineas=String(texto||'').replace(/^\uFEFF/,'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  let nuevos=0, actualizados=0;
+  lineas.forEach(l=>{
+    const sep = l.includes(';')?';':(l.includes('\t')?'\t':',');
+    const partes=l.split(sep).map(x=>x.trim().replace(/^["']|["']$/g,'').trim());
+    const nombre=(partes[0]||'').replace(/\s+/g,' ');
+    if(!nombre) return;
+    if(['nombre','nombres','proveedor','proveedores','nombre completo'].includes(norm(nombre))) return;
+    const codigo=limpiarCodigo(partes[1]);
+    const ex=PROVEEDORES_DB.find(p=>norm(p.nombre)===norm(nombre));
+    if(ex){ if(codigo!==ex.codigo){ ex.codigo=codigo; actualizados++; } }
+    else { PROVEEDORES_DB.push({nombre,codigo}); nuevos++; }
+  });
+  if(!nuevos&&!actualizados){ showToast('No se encontraron proveedores nuevos','error'); return; }
+  persist();
+  renderProvList();
+  document.getElementById('pv-paste').value='';
+  showToast(`✓ ${nuevos} nuevos, ${actualizados} actualizados`,'success');
 }
 
 // ── Inicio: restaura pestañas e historial del dispositivo ──
